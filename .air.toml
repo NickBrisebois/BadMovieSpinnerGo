@@ -1,0 +1,25 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+    cmd = "make build"
+    full_bin = "go tool dlv exec --headless --listen=:2345 --api-version=2 --accept-multiclient ./BadMovieSpinnerGo --"
+    include_ext = ["go", "toml"]
+    exclude_dir = ["tmp", "web", "vendor"]
+    delay = 500
+    kill_delay = "2s"
+    send_interrupt = true
+    rerun = false
+
+[log]
+    level = "debug"
+    time = true
+
+[color]
+    main = "magenta"
+    watcher = "cyan"
+    build = "yellow"
+    runner = "green"
+
+[misc]
+    clean_on_exit = true

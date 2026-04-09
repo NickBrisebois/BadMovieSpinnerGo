@@ -1,0 +1,14 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "label": "dev (air)",
+    "mode": "remote",
+    "request": "attach",
+    "adapter": "Delve",
+    "host": "127.0.0.1",
+    "port": 2345,
+  },
+]
