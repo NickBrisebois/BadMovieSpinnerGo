@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Bad Movie Spinner</title>
+    </head>
+    <body>
+        <header>
+            <h1>Bad friggin movies</h1>
+            <p>yeah</p>
+        </header>
+
+        <div id="spinner-container"></div>
+
+        <script src="wasm_exec.js"></script>
+        <script>
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("bad_movie_spinner.wasm"), go.importObject).then((result) => {
+                go.run(result.instance);
+            });
+        </script>
+    </body>
+</html>

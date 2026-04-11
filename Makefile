@@ -1,23 +1,32 @@
-BIN_NAME := BadMovieSpinnerGo
-WASM_DIR := web
-WASM_FILE := ${WASM_DIR}/app.wasm
+SERVER_BIN=./bin/server
+WASM_OUT=./web/static/main.wasm
+WASM_EXEC=./web/static/wasm_exec.js
 
-.PHONY: build run wasm server dev clean
+LINUX_BIN = ./bin/badmoviespinner
 
-wasm:
-	GOARCH=wasm GOOS=js go build -o ${WASM_FILE}
+GOROOT=$(shell go env GOROOT)
 
-server:
-	go build -o ${BIN_NAME}
+.PHONY: all build-wasm build-server build-linux copy-wasm-exec
 
-build: wasm server
+all: build-wasm
 
-run: build
-	./${BIN_NAME}
+build-server:
+	go build -o $(SERVER_BIN) ./cmd/server/main.go
 
-dev:
-	go tool air
+copy-wasm-exec:
+		cp $(GOROOT)/misc/wasm/wasm_exec.js $(WASM_EXEC)
+
+build-wasm: copy-wasm-exec
+	GOOS=js GOARCH=wasm go build -o $(WASM_OUT) ./cmd/spinner/main.go
+
+build-linux:
+	CGO_ENABLED=1 go build -o $(LINUX_BIN) ./cmd/spinner/main.go
+
+debug:
+	go tool air -c .air-spinner.toml
+
+run:
+	go tool air -c .air-spinner.toml -build.full_bin bin/badmoviespinner
 
 clean:
-	rm -f ${WASM_FILE} ${BIN_NAME}
-	rm -rf tmp/
+	rm -f $(WASM_OUT) $(WASM_EXEC)

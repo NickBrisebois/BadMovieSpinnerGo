@@ -1,0 +1,28 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+    cmd = "make build-linux"
+    # bin = "bin/badmoviespinner"
+    full_bin = "bash scripts/dlv_spinner.sh"
+    include_ext = ["go", "toml", "tpl", "tmpl", "html", "css", "js", "wasm"]
+    exclude_dir = ["tmp", "bin", "vendor"]
+    delay = 500
+    stop_on_error = true
+    send_interrupt = true
+
+[log]
+    level = "debug"
+    time = true
+
+[color]
+    main = "magenta"
+    watcher = "cyan"
+    build = "yellow"
+    runner = "green"
+
+[misc]
+    clean_on_exit = true
+
+[screen]
+    clear_on_rebuild = true

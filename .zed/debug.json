@@ -4,11 +4,11 @@
 // see: https://zed.dev/docs/debugger
 [
   {
-    "label": "dev (air)",
-    "mode": "remote",
-    "request": "attach",
+    "label": "Run Debugger (Hot Reload)",
     "adapter": "Delve",
-    "host": "127.0.0.1",
-    "port": 2345,
+    "request": "attach",
+    "mode": "remote",
+    "stopOnEntry": false,
+    "tcp_connection": { "host": "127.0.0.1", "port": 2345 },
   },
 ]
