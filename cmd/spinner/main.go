@@ -14,14 +14,11 @@ const (
 )
 
 type BadMovieSpinner struct {
-	spinner    *spinner.Spinner
-	isSpinning bool
+	spinner *spinner.Spinner
 }
 
 func (g *BadMovieSpinner) Update() error {
-	if g.isSpinning {
-		g.spinner.Update()
-	}
+	g.spinner.Update()
 	return nil
 }
 

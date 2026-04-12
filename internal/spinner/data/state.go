@@ -12,6 +12,7 @@ type Wheel struct {
 }
 
 type WheelDrawProperties struct {
+	SliceAngle          float32 // radians
 	Rotation            float32 // radians
 	AngularVelocity     float32 // radians/sec
 	AngularAcceleration float32 // radians/sec^2
@@ -31,24 +32,20 @@ type SliceDrawProperties struct {
 	EndAngle   float32
 }
 
-func NewSlice(id int, step int, sliceAngle float32, movie models.MovieMeta, fillColour color.RGBA) *Slice {
+func NewSlice(id int, step int, startAngle float32, endAngle float32, movie models.MovieMeta, fillColour color.RGBA) *Slice {
 	return &Slice{
 		ID:             id,
 		Movie:          movie,
 		Label:          movie.Title,
 		FillColour:     fillColour,
-		DrawProperties: NewSliceDrawProperties(step, sliceAngle),
+		DrawProperties: NewSliceDrawProperties(step, startAngle, endAngle),
 	}
 }
 
-func NewSliceDrawProperties(step int, sliceAngle float32) *SliceDrawProperties {
+func NewSliceDrawProperties(step int, startAngle float32, endAngle float32) *SliceDrawProperties {
 	return &SliceDrawProperties{
 		Step:       step,
-		StartAngle: float32(step) * sliceAngle,
-		EndAngle:   float32(step+1) * sliceAngle,
+		StartAngle: startAngle,
+		EndAngle:   endAngle,
 	}
-}
-
-func GetNextStateSliceDrawProperties(currentDrawProperties *SliceDrawProperties) *SliceDrawProperties {
-	return nil
 }

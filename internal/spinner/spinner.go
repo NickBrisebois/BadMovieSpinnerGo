@@ -30,16 +30,20 @@ type Spinner struct {
 
 func (s *Spinner) Init(centreX, centreY, radiusX, radiusY float32) {
 	movies := data.PullMovieList()
-	sliceAngle := render.GetAnglePerSlice(len(movies))
+	sliceAngle := render.GetSliceAngle(len(movies))
+
+	// Initialise the wheel with 0'd out animation properties
+	wheelDrawProperties := &data.WheelDrawProperties{
+		Rotation:            0,
+		AngularVelocity:     0.1,
+		AngularAcceleration: 0.01,
+		SliceAngle:          sliceAngle,
+	}
 
 	s.Wheel = &data.Wheel{
-		IsSpinning: false,
-		DrawProperties: &data.WheelDrawProperties{
-			Rotation:            0,
-			AngularVelocity:     0,
-			AngularAcceleration: 0,
-		},
-		Slices: s.genSlices(sliceAngle, movies),
+		IsSpinning:     true,
+		DrawProperties: wheelDrawProperties,
+		Slices:         s.genSlices(sliceAngle, movies),
 	}
 	s.DrawHandler = render.NewDrawHandler(s.Wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
 }
@@ -51,7 +55,8 @@ func (s *Spinner) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]da
 		slices = append(slices, *data.NewSlice(
 			i,
 			i,
-			sliceAngle,
+			render.GetSliceStartAngle(i, sliceAngle),
+			render.GetSliceEndAngle(i, sliceAngle),
 			movie,
 			sliceColours[i%len(sliceColours)],
 		))
@@ -60,15 +65,26 @@ func (s *Spinner) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]da
 	return &slices
 }
 
+func (s *Spinner) updateWheelState() {
+
+	render.UpdateAngularVelocityFromAcceleration(&s.Wheel.DrawProperties.AngularVelocity, s.Wheel.DrawProperties.AngularAcceleration)
+	render.UpdateRotationFromAngularVelocity(&s.Wheel.DrawProperties.Rotation, s.Wheel.DrawProperties.AngularVelocity)
+	rotation := s.Wheel.DrawProperties.Rotation
+
+	// Update the wheel's rotation based on the updated slice angles
+	for i := range *s.Wheel.Slices {
+		sliceDrawProperties := (*s.Wheel.Slices)[i].DrawProperties
+		if sliceDrawProperties != nil {
+			sliceDrawProperties.StartAngle += rotation
+			sliceDrawProperties.EndAngle += rotation
+		}
+	}
+}
+
 func (s *Spinner) Update() {
-	if s.Wheel.Slices == nil {
+	if s.Wheel.Slices == nil || !s.Wheel.IsSpinning {
 		return
 	}
 
-	for i := range *s.Wheel.Slices {
-		drawProperties := (*s.Wheel.Slices)[i].DrawProperties
-		if drawProperties == nil {
-			(*s.Wheel.Slices)[i].DrawProperties = data.GetNextStateSliceDrawProperties(drawProperties)
-		}
-	}
+	s.updateWheelState()
 }
