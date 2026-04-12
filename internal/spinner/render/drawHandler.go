@@ -76,25 +76,21 @@ func (s *DrawHandler) drawSlice(
 	vector.FillPath(screen, &path, nil, drawPathOptions)
 }
 
-func (s *DrawHandler) Draw(screen *ebiten.Image, x, y, radiusX, radiusY float32) {
+func (s *DrawHandler) Draw(screen *ebiten.Image) {
 	// split the spinner wheel into equal parts
 	for i := 0; i < len(*s.Slices); i++ {
 		slice := (*s.Slices)[i]
 		if slice.DrawProperties == nil {
 		}
 
-		f32i := float32(i)
-		start := f32i * s.SliceAngle
-		end := (f32i + 1) * s.SliceAngle
-
 		s.drawSlice(
 			screen,
-			x,
-			y,
-			radiusX,
-			radiusY,
-			start,
-			end,
+			s.CentreX,
+			s.CentreY,
+			s.RadiusX,
+			s.RadiusY,
+			slice.DrawProperties.StartAngle,
+			slice.DrawProperties.EndAngle,
 			slice.FillColour,
 			slice.OutlineColour,
 		)

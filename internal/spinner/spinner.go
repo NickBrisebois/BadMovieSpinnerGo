@@ -36,13 +36,7 @@ func (s *Spinner) Init(centreX, centreY, radiusX, radiusY float32) {
 	mockMovies := s.pullMovieList()
 	sliceAngle := render.GetAnglePerSlice(len(mockMovies))
 
-	s.Slices = s.genSlices(
-		sliceAngle,
-		centreX,
-		centreY,
-		radiusX,
-		radiusY,
-	)
+	s.Slices = s.genSlices(sliceAngle)
 	s.DrawHandler = render.NewDrawHandler(s.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
 }
 
@@ -54,7 +48,7 @@ func (s *Spinner) pullMovieList() []models.MovieMeta {
 	}
 }
 
-func (s *Spinner) genSlices(sliceAngle, centreX, centreY, radiusX, radiusY float32) *[]data.Slice {
+func (s *Spinner) genSlices(sliceAngle float32) *[]data.Slice {
 	movies := s.pullMovieList()
 	slices := make([]data.Slice, 0, len(movies))
 
@@ -65,9 +59,9 @@ func (s *Spinner) genSlices(sliceAngle, centreX, centreY, radiusX, radiusY float
 			Label:      movie.Title,
 			FillColour: sliceColours[i%len(sliceColours)],
 			DrawProperties: &data.DrawProperties{
-				Step:  i,
-				Start: float32(i) * sliceAngle,
-				End:   (float32(i) + 1) * sliceAngle,
+				Step:       i,
+				StartAngle: float32(i) * sliceAngle,
+				EndAngle:   (float32(i) + 1) * sliceAngle,
 			},
 		})
 	}

@@ -1,9 +1,9 @@
 package data
 
 type DrawProperties struct {
-	Step  int
-	Start float32
-	End   float32
+	Step       int
+	StartAngle float32
+	EndAngle   float32
 }
 
 func NewDrawProperties() *DrawProperties {
