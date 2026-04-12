@@ -1,6 +1,6 @@
 package models
 
-type Movie struct {
+type MovieMeta struct {
 	Title       string
 	Link        string
 	Watched     bool

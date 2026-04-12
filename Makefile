@@ -26,7 +26,7 @@ debug:
 	go tool air -c .air-spinner.toml
 
 run:
-	go tool air -c .air-spinner.toml -build.full_bin bin/badmoviespinner
+	go tool air -c .air-spinner.toml -build.entrypoint bin/badmoviespinner
 
 clean:
 	rm -f $(WASM_OUT) $(WASM_EXEC)

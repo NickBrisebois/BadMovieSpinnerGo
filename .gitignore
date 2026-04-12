@@ -35,3 +35,4 @@ gcpserviceaccountkey.json
 *.wasm
 bin/
 wasm_exec.js
+notes.md

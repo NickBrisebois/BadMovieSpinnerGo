@@ -3,8 +3,7 @@ tmp_dir = "tmp"
 
 [build]
     cmd = "make build-linux"
-    # bin = "bin/badmoviespinner"
-    full_bin = "bash scripts/dlv_spinner.sh"
+    entrypoint = ["bash", "scripts/dlv_spinner.sh"]
     include_ext = ["go", "toml", "tpl", "tmpl", "html", "css", "js", "wasm"]
     exclude_dir = ["tmp", "bin", "vendor"]
     delay = 500
