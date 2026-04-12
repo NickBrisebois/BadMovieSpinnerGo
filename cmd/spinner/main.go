@@ -35,9 +35,7 @@ func (g *BadMovieSpinner) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func main() {
-	badMovieSpinner := BadMovieSpinner{
-		spinner: spinner.NewSpinner(),
-	}
+	badMovieSpinner := BadMovieSpinner{spinner: &spinner.Spinner{}}
 	badMovieSpinner.spinner.Init(
 		screenWidth/2,
 		screenHeight/2,
@@ -45,6 +43,7 @@ func main() {
 		screenHeight/4,
 	)
 
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Bad Movie Spinner")
 	if err := ebiten.RunGame(&badMovieSpinner); err != nil {

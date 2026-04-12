@@ -25,59 +25,50 @@ var (
 
 type Spinner struct {
 	DrawHandler *render.DrawHandler
-	Slices      *[]data.Slice
-}
-
-func NewSpinner() *Spinner {
-	return &Spinner{nil, nil}
+	Wheel       *data.Wheel
 }
 
 func (s *Spinner) Init(centreX, centreY, radiusX, radiusY float32) {
-	mockMovies := s.pullMovieList()
-	sliceAngle := render.GetAnglePerSlice(len(mockMovies))
+	movies := data.PullMovieList()
+	sliceAngle := render.GetAnglePerSlice(len(movies))
 
-	s.Slices = s.genSlices(sliceAngle)
-	s.DrawHandler = render.NewDrawHandler(s.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
-}
-
-func (s *Spinner) pullMovieList() []models.MovieMeta {
-	return []models.MovieMeta{
-		{Title: "Movie 1", Link: "http://example.com/movie1", Watched: false, SuggestedBy: "user1", PosterURL: "https://http.cat/images/100.jpg"},
-		{Title: "Movie 2", Link: "http://example.com/movie2", Watched: true, SuggestedBy: "user2", PosterURL: "https://http.cat/images/101.jpg"},
-		{Title: "Movie 3", Link: "http://example.com/movie3", Watched: false, SuggestedBy: "user3", PosterURL: "https://http.cat/images/102.jpg"},
+	s.Wheel = &data.Wheel{
+		IsSpinning: false,
+		DrawProperties: &data.WheelDrawProperties{
+			Rotation:            0,
+			AngularVelocity:     0,
+			AngularAcceleration: 0,
+		},
+		Slices: s.genSlices(sliceAngle, movies),
 	}
+	s.DrawHandler = render.NewDrawHandler(s.Wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
 }
 
-func (s *Spinner) genSlices(sliceAngle float32) *[]data.Slice {
-	movies := s.pullMovieList()
+func (s *Spinner) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]data.Slice {
 	slices := make([]data.Slice, 0, len(movies))
 
 	for i, movie := range movies {
-		slices = append(slices, data.Slice{
-			ID:         i,
-			Movie:      movie,
-			Label:      movie.Title,
-			FillColour: sliceColours[i%len(sliceColours)],
-			DrawProperties: &data.DrawProperties{
-				Step:       i,
-				StartAngle: float32(i) * sliceAngle,
-				EndAngle:   (float32(i) + 1) * sliceAngle,
-			},
-		})
+		slices = append(slices, *data.NewSlice(
+			i,
+			i,
+			sliceAngle,
+			movie,
+			sliceColours[i%len(sliceColours)],
+		))
 	}
 
 	return &slices
 }
 
 func (s *Spinner) Update() {
-	if s.Slices == nil {
+	if s.Wheel.Slices == nil {
 		return
 	}
 
-	for i := range *s.Slices {
-		drawProperties := (*s.Slices)[i].DrawProperties
+	for i := range *s.Wheel.Slices {
+		drawProperties := (*s.Wheel.Slices)[i].DrawProperties
 		if drawProperties == nil {
-			(*s.Slices)[i].DrawProperties = data.GetNextStateSliceDrawProperties(drawProperties)
+			(*s.Wheel.Slices)[i].DrawProperties = data.GetNextStateSliceDrawProperties(drawProperties)
 		}
 	}
 }

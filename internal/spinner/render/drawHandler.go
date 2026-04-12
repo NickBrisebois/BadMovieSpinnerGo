@@ -1,7 +1,6 @@
 package render
 
 import (
-	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -50,28 +49,25 @@ func addOuterArc(path *vector.Path, centreX, centreY, radiusX, radiusY, start, e
 
 func (s *DrawHandler) drawSlice(
 	screen *ebiten.Image,
-	centreX, centreY, radiusX, radiusY float32,
-	start, end float32,
-	fillColour color.RGBA,
-	outlineColour color.RGBA,
+	slice *data.Slice,
 ) {
 	path := vector.Path{}
 
 	// move to the centre of the spinner wheel
-	path.MoveTo(centreX, centreY)
+	path.MoveTo(s.CentreX, s.CentreY)
 
-	// line out to the outer corner of the slice
-	ePointX, ePointY := GetEllipsePoint(centreX, centreY, radiusX, radiusY, start)
+	// given the start angle and the circle properties, get the outer corner coords
+	ePointX, ePointY := GetEllipsePoint(s.CentreX, s.CentreY, s.RadiusX, s.RadiusY, slice.DrawProperties.StartAngle)
 	path.LineTo(ePointX, ePointY)
 
-	// fancy math to draw a line connecting the two corners in an arc shape
-	addOuterArc(&path, centreX, centreY, radiusX, radiusY, start, end)
+	// draw a fancy arc to the slice's other outer corner
+	addOuterArc(&path, s.CentreX, s.CentreY, s.RadiusX, s.RadiusY, slice.DrawProperties.StartAngle, slice.DrawProperties.EndAngle)
 
 	// back to the middle again
-	path.LineTo(centreX, centreY)
+	path.LineTo(s.CentreX, s.CentreY)
 
 	drawPathOptions := &vector.DrawPathOptions{AntiAlias: true}
-	drawPathOptions.ColorScale.ScaleWithColor(fillColour)
+	drawPathOptions.ColorScale.ScaleWithColor(slice.FillColour)
 
 	vector.FillPath(screen, &path, nil, drawPathOptions)
 }
@@ -83,17 +79,7 @@ func (s *DrawHandler) Draw(screen *ebiten.Image) {
 		if slice.DrawProperties == nil {
 		}
 
-		s.drawSlice(
-			screen,
-			s.CentreX,
-			s.CentreY,
-			s.RadiusX,
-			s.RadiusY,
-			slice.DrawProperties.StartAngle,
-			slice.DrawProperties.EndAngle,
-			slice.FillColour,
-			slice.OutlineColour,
-		)
+		s.drawSlice(screen, &slice)
 	}
 
 }
