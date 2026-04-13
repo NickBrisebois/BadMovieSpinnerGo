@@ -35,17 +35,17 @@ func (s *Spinner) Init(centreX, centreY, radiusX, radiusY float32) {
 	// Initialise the wheel with 0'd out animation properties
 	wheelDrawProperties := &data.WheelDrawProperties{
 		Rotation:            0,
-		AngularVelocity:     0.1,
-		AngularAcceleration: 0.01,
+		AngularVelocity:     0.01,
+		AngularAcceleration: 0.00001,
 		SliceAngle:          sliceAngle,
 	}
 
 	s.Wheel = &data.Wheel{
-		IsSpinning:     true,
+		IsSpinning:     false,
 		DrawProperties: wheelDrawProperties,
 		Slices:         s.genSlices(sliceAngle, movies),
 	}
-	s.DrawHandler = render.NewDrawHandler(s.Wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
+	s.DrawHandler = render.NewDrawHandler(nil, s.Wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
 }
 
 func (s *Spinner) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]data.Slice {

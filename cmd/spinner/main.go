@@ -24,7 +24,8 @@ func (g *BadMovieSpinner) Update() error {
 
 func (g *BadMovieSpinner) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255})
-	g.spinner.DrawHandler.Draw(screen)
+	g.spinner.DrawHandler.ResetScreen(screen)
+	g.spinner.DrawHandler.Draw()
 }
 
 func (g *BadMovieSpinner) Layout(outsideWidth, outsideHeight int) (int, int) {

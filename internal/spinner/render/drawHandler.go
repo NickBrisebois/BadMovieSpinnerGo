@@ -10,12 +10,17 @@ import (
 )
 
 type DrawHandler struct {
+	Screen     *ebiten.Image
 	Slices     *[]data.Slice
 	SliceAngle float32
 	CentreX    float32
 	CentreY    float32
 	RadiusX    float32
 	RadiusY    float32
+
+	// render targets
+	maskRenderTarget  *ebiten.Image
+	sliceRenderTarget *ebiten.Image
 }
 
 // outerSliceArcSegments defines how many segments to draw for the outer arc connecting the two corners
@@ -23,9 +28,11 @@ type DrawHandler struct {
 const outerSliceArcSegments = 20
 
 func NewDrawHandler(
+	screen *ebiten.Image,
 	slices *[]data.Slice,
-	sliceAngle, centreX, centreY, radiusX, radiusY float32) *DrawHandler {
-	return &DrawHandler{slices, sliceAngle, centreX, centreY, radiusX, radiusY}
+	sliceAngle, centreX, centreY, radiusX, radiusY float32,
+) *DrawHandler {
+	return &DrawHandler{screen, slices, sliceAngle, centreX, centreY, radiusX, radiusY, nil, nil}
 }
 
 // addOuterArc draws an arc connecting the two outer corners in an arc shape
@@ -47,10 +54,9 @@ func addOuterArc(path *vector.Path, centreX, centreY, radiusX, radiusY, start, e
 
 }
 
-func (s *DrawHandler) drawSlice(
-	screen *ebiten.Image,
+func (s *DrawHandler) getSlicePath(
 	slice *data.Slice,
-) {
+) *vector.Path {
 	path := vector.Path{}
 
 	// move to the centre of the spinner wheel
@@ -65,21 +71,31 @@ func (s *DrawHandler) drawSlice(
 
 	// back to the middle again
 	path.LineTo(s.CentreX, s.CentreY)
+	path.Close()
+	return &path
+}
+
+func (s *DrawHandler) drawSlice(slice *data.Slice) {
+	slicePath := s.getSlicePath(slice)
 
 	drawPathOptions := &vector.DrawPathOptions{AntiAlias: true}
 	drawPathOptions.ColorScale.ScaleWithColor(slice.FillColour)
 
-	vector.FillPath(screen, &path, nil, drawPathOptions)
+	vector.FillPath(s.maskRenderTarget, slicePath, nil, drawPathOptions)
 }
 
-func (s *DrawHandler) Draw(screen *ebiten.Image) {
+func (s *DrawHandler) ResetScreen(screen *ebiten.Image) {
+	s.Screen = screen
+}
+
+func (s *DrawHandler) Draw() {
 	// split the spinner wheel into equal parts
 	for i := 0; i < len(*s.Slices); i++ {
 		slice := (*s.Slices)[i]
 		if slice.DrawProperties == nil {
 		}
 
-		s.drawSlice(screen, &slice)
+		s.drawSlice(&slice)
 	}
 
 }
