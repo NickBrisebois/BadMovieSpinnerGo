@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"reflect"
+
+	"NickBrisebois/BadMovieSpinnerGo/internal/api"
 )
 
 type SpinnerServerConfig struct {
@@ -26,6 +28,10 @@ func (c *SpinnerServerConfig) Load() {
 }
 
 func main() {
+	movie_api := api.NewAPIServer()
 
-	log.Println("I'm a teapot")
+	log.Printf("Movie spinner API listening on %s", movie_api.Addr)
+	if err := movie_api.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }

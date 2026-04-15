@@ -2,7 +2,6 @@ package main
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner"
-	"image/color"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -23,9 +22,7 @@ func (g *BadMovieSpinner) Update() error {
 }
 
 func (g *BadMovieSpinner) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 0, 0, 255})
-	g.spinner.DrawHandler.ResetScreen(screen)
-	g.spinner.DrawHandler.Draw()
+	g.spinner.Draw(screen)
 }
 
 func (g *BadMovieSpinner) Layout(outsideWidth, outsideHeight int) (int, int) {

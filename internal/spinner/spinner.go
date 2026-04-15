@@ -5,6 +5,8 @@ import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 var (
@@ -45,7 +47,7 @@ func (s *Spinner) Init(centreX, centreY, radiusX, radiusY float32) {
 		DrawProperties: wheelDrawProperties,
 		Slices:         s.genSlices(sliceAngle, movies),
 	}
-	s.DrawHandler = render.NewDrawHandler(nil, s.Wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
+	s.DrawHandler = render.NewDrawHandler(s.Wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
 }
 
 func (s *Spinner) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]data.Slice {
@@ -87,4 +89,11 @@ func (s *Spinner) Update() {
 	}
 
 	s.updateWheelState()
+}
+
+func (s *Spinner) Draw(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0, 0, 0, 255})
+
+	s.DrawHandler.EnsureRenderTargets(screen.Bounds().Dx(), screen.Bounds().Dy())
+	s.DrawHandler.Draw(screen)
 }

@@ -1,32 +1,54 @@
-SERVER_BIN=./bin/server
-WASM_OUT=./web/static/main.wasm
-WASM_EXEC=./web/static/wasm_exec.js
+BIN_NAME=badmoviespinner
 
-LINUX_BIN = ./bin/badmoviespinner
+API_BIN=./bin/$(BIN_NAME)-api
+
+APP_WASM_OUT=./web/static/main.wasm
+APP_WASM_EXEC=./web/static/APP_WASM_exec.js
+APP_LINUX_BIN = ./bin/$(BIN_NAME)-spinner
 
 GOROOT=$(shell go env GOROOT)
 
-.PHONY: all build-wasm build-server build-linux copy-wasm-exec
+.PHONY: help
+help:
+	@echo "Usage: make [target]"
+	@echo "Targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+.PHONY: all
 all: build-wasm
 
-build-server:
-	go build -o $(SERVER_BIN) ./cmd/server/main.go
+.PHONY: build-api
+build-api:  ## Build the spinner's backend API
+	go build -o $(API_BIN) ./cmd/api
 
-copy-wasm-exec:
-		cp $(GOROOT)/misc/wasm/wasm_exec.js $(WASM_EXEC)
+.PHONY: build-linux
+build-linux:  ## Build the spinner as a Linux binary
+	go build -o $(APP_LINUX_BIN) ./cmd/spinner
 
-build-wasm: copy-wasm-exec
-	GOOS=js GOARCH=wasm go build -o $(WASM_OUT) ./cmd/spinner/main.go
+.PHONY: copy-wasm-exec
+copy-wasm-exec:  ## Copy the wasm_exec.js dependency into the html app build directory
+	cp $(GOROOT)/misc/wasm/APP_WASM_exec.js $(APP_WASM_EXEC)
 
-build-linux:
-	CGO_ENABLED=1 go build -o $(LINUX_BIN) ./cmd/spinner/main.go
+.PHONY: build-wasm
+build-wasm: copy-wasm-exec  ## Build the spinner WASM binary
+	GOOS=js GOARCH=wasm go build -o $(APP_WASM_OUT) ./cmd/spinner/main.go
 
-debug:
+.PHONY: debug
+debug:  ## Run the spinner with live reload as a linux binary through delve (see `.air-spinner.toml` for debugger connection details)
 	go tool air -c .air-spinner.toml
 
-run:
-	go tool air -c .air-spinner.toml -build.entrypoint bin/badmoviespinner
+.PHONY: run
+run:  ## Run the spinner linux binary with live reload but no debugger
+	go tool air -c .air-spinner.toml -build.entrypoint bin/$(BIN_NAME)-spinner
 
-clean:
-	rm -f $(WASM_OUT) $(WASM_EXEC)
+.PHONY: debug-api
+debug-api:  ## Run the spinner API with live reload but no debugger
+	go tool air -c .air-api.toml
+
+.PHONY: run-api
+run-api:  ## Run the spinner API with live reload with delve debugger
+	go tool air -c .air-api.toml -build.entrypoint bin/$(BIN_NAME)-api
+
+.PHONY: clean
+clean:  ## Clean up builds and reset to a clean state
+	rm -f $(APP_WASM_OUT) $(APP_WASM_EXEC)

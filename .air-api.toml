@@ -2,8 +2,8 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-    cmd = "make build-linux"
-    entrypoint = ["bash", "scripts/run_dlv.sh", "spinner"]
+    cmd = "make build-api"
+    entrypoint = ["bash", "scripts/run_dlv.sh", "api"]
     include_ext = ["go", "toml", "tpl", "tmpl", "html", "css", "js", "wasm"]
     exclude_dir = ["tmp", "bin", "vendor"]
     delay = 500
