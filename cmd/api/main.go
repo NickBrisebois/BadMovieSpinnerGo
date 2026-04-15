@@ -5,6 +5,8 @@ import (
 	"reflect"
 
 	"NickBrisebois/BadMovieSpinnerGo/internal/api"
+
+	_ "NickBrisebois/BadMovieSpinnerGo/docs"
 )
 
 type SpinnerServerConfig struct {
@@ -27,6 +29,14 @@ func (c *SpinnerServerConfig) Load() {
 	}
 }
 
+// MovieSpinner API godoc
+// note on docs: https://github.com/swaggo/swag/issues/2045#issuecomment-3892744315
+//
+//	@title			Bad Movie Spinner API
+//	@version		1.0
+//	@description	Backend API for communication with Google Sheets list of movies and TMDB
+//	@host			localhost:8080
+//	@BasePath		/
 func main() {
 	movie_api := api.NewAPIServer()
 

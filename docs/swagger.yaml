@@ -1,0 +1,30 @@
+basePath: /
+definitions:
+  handlers.HealthzResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Backend API for communication with Google Sheets list of movies and
+    TMDB
+  title: Bad Movie Spinner API
+  version: "1.0"
+paths:
+  /healthz:
+    get:
+      description: Returns the status of the API
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthzResponse'
+      summary: Check API health
+      tags:
+      - health healthz
+swagger: "2.0"

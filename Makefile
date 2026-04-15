@@ -49,6 +49,15 @@ debug-api:  ## Run the spinner API with live reload but no debugger
 run-api:  ## Run the spinner API with live reload with delve debugger
 	go tool air -c .air-api.toml -build.entrypoint bin/$(BIN_NAME)-api
 
+.PHONY: gen-docs
+gen-docs:  ## Generate API documentation
+	go tool swag init -g cmd/api/main.go
+
+.PHONY: format
+format:
+	go fmt ./...
+	go tool swag fmt
+
 .PHONY: clean
 clean:  ## Clean up builds and reset to a clean state
 	rm -f $(APP_WASM_OUT) $(APP_WASM_EXEC)
