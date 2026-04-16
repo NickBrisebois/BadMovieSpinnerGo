@@ -27,4 +27,19 @@ paths:
       summary: Check API health
       tags:
       - health healthz
+  /sheets/movies:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+      summary: Handle HTTP request for retrieving list of movies from Google Sheets
+        (specified by local spreadsheetID).
+      tags:
+      - movies
 swagger: "2.0"

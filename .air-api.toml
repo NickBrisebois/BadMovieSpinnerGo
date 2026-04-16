@@ -3,6 +3,7 @@ tmp_dir = "tmp"
 
 [build]
     cmd = "make build-api"
+    env_files = [".env"]
     entrypoint = ["bash", "scripts/run_dlv.sh", "api"]
     include_ext = ["go", "toml", "tpl", "tmpl", "html", "css", "js", "wasm"]
     exclude_dir = ["tmp", "bin", "vendor"]

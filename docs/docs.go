@@ -34,6 +34,28 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/sheets/movies": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Handle HTTP request for retrieving list of movies from Google Sheets (specified by local spreadsheetID).",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
