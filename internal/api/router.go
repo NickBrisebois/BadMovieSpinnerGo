@@ -6,17 +6,21 @@ import (
 	"net/http"
 )
 
-func NewRouter(config *Config, logger *slog.Logger) http.Handler {
+func NewRouter(config *Config, logger *slog.Logger) (http.Handler, error) {
 	mux := http.NewServeMux()
 
-	gSheetsHandler, _ := handlers.NewGSheetsReqHandler(
+	gSheetsHandler, err := handlers.NewGSheetsReqHandler(
 		config.Auth.GCPServiceAccountKeyPath,
-		config.Auth.GCPServiceAccountKeyPath,
+		config.GSheets.SheetID,
 		logger,
 	)
+	if err != nil {
+		logger.Error("failed to create gsheets handler", slog.Any("error", err))
+		return nil, err
+	}
 
 	mux.HandleFunc("/healthz", handlers.GetHealthz)
 	mux.HandleFunc("/sheets/movies", gSheetsHandler.GetMovieList)
 
-	return mux
+	return mux, nil
 }

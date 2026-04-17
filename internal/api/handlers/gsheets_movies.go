@@ -12,16 +12,20 @@ type GSheetsMovieReqHandler struct {
 }
 
 func NewGSheetsReqHandler(credentialsFilePath, spreadsheetID string, logger *slog.Logger) (*GSheetsMovieReqHandler, error) {
-	handler := &GSheetsMovieReqHandler{sheetsAPI: nil}
+
 	sheetsAPI, err := external.NewGoogleSheetsAPI(
 		credentialsFilePath,
 		spreadsheetID,
 		logger,
 	)
 	if err != nil {
+		logger.Error("failed to create google sheets api", "err", err)
 		return nil, err
 	}
-	handler.sheetsAPI = sheetsAPI
+	handler := &GSheetsMovieReqHandler{
+		sheetsAPI: sheetsAPI,
+		logger:    logger,
+	}
 	return handler, nil
 }
 
@@ -35,7 +39,7 @@ func NewGSheetsReqHandler(credentialsFilePath, spreadsheetID string, logger *slo
 func (h *GSheetsMovieReqHandler) GetMovieList(w http.ResponseWriter, r *http.Request) {
 	movies, err := h.sheetsAPI.GetMovieData()
 	if err != nil {
-		h.logger.Error("Failed to retrieve movie data", "err", err)
+		h.logger.Error("failed to retrieve movie data", "err", err)
 	}
 
 	h.logger.Debug("movies", "movies", movies)

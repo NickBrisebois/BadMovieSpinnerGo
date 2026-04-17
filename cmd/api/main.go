@@ -18,22 +18,28 @@ import (
 //	@host			localhost:8080
 //	@BasePath		/
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
 	slog.SetDefault(logger)
 
 	config := &api.Config{}
 	err := api.LoadConfig(config)
 	if err != nil {
-		logger.Error("Failed to load config", "err", err)
+		logger.Error("failed to load config", "err", err)
 		os.Exit(1)
 	}
 
-	movie_api := api.NewAPIServer(config, logger)
+	movie_api, err := api.NewAPIServer(config, logger)
+	if err != nil {
+		logger.Error("failed to create API server", "err", err)
+		os.Exit(1)
+	}
 
-	logger.Info("Starting movie spinner API", "addr", movie_api.Addr)
+	logger.Info("starting movie spinner API", "addr", movie_api.Addr)
 
 	if err := movie_api.ListenAndServe(); err != nil {
-		logger.Error("Server is dead", "err", err)
+		logger.Error("server is dead", "err", err)
 		os.Exit(1)
 	}
 }

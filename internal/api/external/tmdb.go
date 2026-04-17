@@ -1,1 +1,44 @@
 package external
+
+import (
+	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+)
+
+const (
+	Lang            = "en-US"
+	TMDBGetMovieURL = "https://api.themoviedb.org/3/movie/%s?&language=%s"
+)
+
+type TMDBApi struct {
+	tmdbAPIKey string
+	logger     *slog.Logger
+}
+
+func NewTMDBApi(tmdbAPIKey string, logger *slog.Logger) *TMDBApi {
+	return &TMDBApi{
+		tmdbAPIKey: tmdbAPIKey,
+		logger:     logger,
+	}
+}
+
+func (t *TMDBApi) httpReq(method, url string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.tmdbAPIKey))
+	return http.DefaultClient.Do(req)
+}
+
+func (t *TMDBApi) FetchMovieData(tmdbID string) {
+	getURL := fmt.Sprintf(TMDBGetMovieURL, tmdbID, Lang)
+	resp, err := t.httpReq("GET", getURL, nil)
+	if err != nil {
+		t.logger.Error("failed to fetch movie data", "error", err)
+		// return ""
+	}
+	defer resp.Body.Close()
+}
