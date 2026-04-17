@@ -2,7 +2,7 @@ package models
 
 type MovieMeta struct {
 	Title       string
-	Link        string
+	TMDBId      string
 	Watched     bool
 	SuggestedBy string
 	PosterURL   string

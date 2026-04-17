@@ -1,6 +1,8 @@
 package external
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/api/dto"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -33,7 +35,7 @@ func (t *TMDBApi) httpReq(method, url string, body io.Reader) (*http.Response, e
 	return http.DefaultClient.Do(req)
 }
 
-func (t *TMDBApi) FetchMovieData(tmdbID string) {
+func (t *TMDBApi) FetchMovieData(tmdbID string) (*dto.TMDBMovieDetails, error) {
 	getURL := fmt.Sprintf(TMDBGetMovieURL, tmdbID, Lang)
 	resp, err := t.httpReq("GET", getURL, nil)
 	if err != nil {
@@ -41,4 +43,12 @@ func (t *TMDBApi) FetchMovieData(tmdbID string) {
 		// return ""
 	}
 	defer resp.Body.Close()
+
+	var movieDetails dto.TMDBMovieDetails
+	err = json.NewDecoder(resp.Body).Decode(&movieDetails)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }

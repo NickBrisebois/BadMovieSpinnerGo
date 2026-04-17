@@ -1,7 +1,7 @@
 package external
 
 import (
-	"NickBrisebois/BadMovieSpinnerGo/internal/api/models"
+	"NickBrisebois/BadMovieSpinnerGo/internal/api/dto"
 	"context"
 	"fmt"
 	"log/slog"
@@ -40,18 +40,18 @@ func NewGoogleSheetsAPI(credentialsFilePath, spreadsheetID string, logger *slog.
 }
 
 // extractMoviesFromSheetData extracts movies from the sheet data and returns array of unprocessed raw sheet data structs
-func (g *GoogleSheetsAPI) extractMoviesFromSheetData(sheetData [][]any) ([]models.GSheetsMoviesEntry, error) {
+func (g *GoogleSheetsAPI) extractMoviesFromSheetData(sheetData [][]any) ([]dto.GSheetsMoviesEntry, error) {
 	if len(sheetData) <= moviesHeaderStartIndex {
 		return nil, fmt.Errorf("could not find start of movie data")
 	}
 
-	entries := make([]models.GSheetsMoviesEntry, 0)
+	entries := make([]dto.GSheetsMoviesEntry, 0)
 	for _, row := range sheetData[moviesHeaderStartIndex:] {
-		if row[models.ColTMDBLinkIndex] == "" {
+		if row[dto.ColTMDBLinkIndex] == "" {
 			// movies without a TMDB link aren't valid
 			continue
 		}
-		entry := models.GSheetsMoviesEntry{}
+		entry := dto.GSheetsMoviesEntry{}
 		entry.FromRowData(row)
 		entries = append(entries, entry)
 	}
@@ -60,7 +60,7 @@ func (g *GoogleSheetsAPI) extractMoviesFromSheetData(sheetData [][]any) ([]model
 	return entries, nil
 }
 
-func (g *GoogleSheetsAPI) GetMovieData() ([]models.GSheetsMoviesEntry, error) {
+func (g *GoogleSheetsAPI) GetMovieData() ([]dto.GSheetsMoviesEntry, error) {
 	if len(g.rawGoogleDoc.Sheets) == 0 {
 		g.logger.Error("no sheet found for provided spreadsheet id", "spreadSheetID", g.spreadsheetID)
 		return nil, nil

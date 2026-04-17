@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.9.9
+	github.com/swaggo/swag v1.16.6
 	google.golang.org/api v0.276.0
 )
 
@@ -61,7 +62,6 @@ require (
 	github.com/spf13/cast v1.9.2 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
-	github.com/swaggo/swag v1.16.6 // indirect
 	github.com/tdewolff/parse/v2 v2.8.3 // indirect
 	github.com/urfave/cli/v2 v2.3.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

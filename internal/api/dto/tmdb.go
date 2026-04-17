@@ -1,13 +1,13 @@
-package models
+package dto
 
 import "encoding/json"
 
 type TMDBMovieDetails struct {
-	PosterPath  string
-	Overview    string
-	Title       string
-	Tagline     string
-	VoteAverage float32
+	PosterPath  string  `json:"poster_path"`
+	Overview    string  `json:"overview"`
+	Title       string  `json:"title"`
+	Tagline     string  `json:"tagline"`
+	VoteAverage float32 `json:"vote_average"`
 }
 
 func (m *TMDBMovieDetails) FromJSON(data []byte) error {

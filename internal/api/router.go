@@ -2,6 +2,7 @@ package api
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/api/handlers"
+	"NickBrisebois/BadMovieSpinnerGo/internal/api/views"
 	"log/slog"
 	"net/http"
 )
@@ -9,9 +10,10 @@ import (
 func NewRouter(config *Config, logger *slog.Logger) (http.Handler, error) {
 	mux := http.NewServeMux()
 
-	gSheetsHandler, err := handlers.NewGSheetsReqHandler(
+	gSheetsHandler, err := views.NewGSheetsView(
 		config.Auth.GCPServiceAccountKeyPath,
 		config.GSheets.SheetID,
+		config.Auth.TMDBReadAccessToken,
 		logger,
 	)
 	if err != nil {
