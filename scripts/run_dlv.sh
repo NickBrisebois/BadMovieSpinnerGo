@@ -5,20 +5,19 @@ TARGET="${1:-api}"
 case "$TARGET" in
     api|spinner) ;;
     *)
-        echo "Usage: $0 [api|spinner"
+        echo "Usage: $0 [api|spinner]"
         exit 1
         ;;
 esac
 
-BIN_DIR="bin/" # (from root of repo)
 if [ "$TARGET" = "spinner" ]; then
-    BIN="$BIN_DIR/badmoviespinner-spinner"
+    CMD="cmd/spinner/main.go"
 else
-    BIN="$BIN_DIR/badmoviespinner-api"
+    CMD="cmd/api/main.go"
 fi
 
-if [ ! -f "$BIN" ]; then
-    echo "Binary not found: $BIN"
+if [ ! -f "$CMD" ]; then
+    echo "Package not found: $CMD"
     exit 1
 fi
 
@@ -28,8 +27,8 @@ kill_process() {
 
 trap kill_process SIGINT SIGTERM
 
-go tool dlv exec \
+go tool dlv debug \
     --headless \
     --listen=:2345 \
     --api-version=2 \
-    $BIN
+    $CMD
