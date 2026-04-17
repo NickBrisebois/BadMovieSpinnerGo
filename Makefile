@@ -34,16 +34,16 @@ build-wasm: copy-wasm-exec  ## Build the spinner WASM binary
 	GOOS=js GOARCH=wasm go build -o $(APP_WASM_OUT) ./cmd/spinner/main.go
 
 .PHONY: debug
-debug:  ## Run the spinner with live reload as a linux binary through delve (see `.air-spinner.toml` for debugger connection details)
-	go tool air -c .air-spinner.toml
+debug: ## Run the spinner with live reload as a linux binary through delve (see `.air-spinner.toml` for debugger connection details)
+	bash scripts/run_dlv.sh spinner
 
 .PHONY: run
 run:  ## Run the spinner linux binary with live reload but no debugger
 	go tool air -c .air-spinner.toml -build.entrypoint bin/$(BIN_NAME)-spinner
 
 .PHONY: debug-api
-debug-api:  ## Run the spinner API with live reload but no debugger
-	go tool air -c .air-api.toml
+debug-api: ## Run the spinner API with live reload but no debugger
+	bash scripts/run_dlv.sh api
 
 .PHONY: run-api
 run-api:  ## Run the spinner API with live reload with delve debugger
