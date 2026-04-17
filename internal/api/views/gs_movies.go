@@ -2,6 +2,7 @@ package views
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/api/handlers"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 )
@@ -36,5 +37,11 @@ func (h *GSheetsView) GetMovieList(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error("failed to retrieve movie data", "err", err)
 	}
 
-	h.logger.Debug("movies", "movies", movies)
+	resp_json, err := json.Marshal(movies)
+	if err != nil {
+		h.logger.Error("failed to marshal movie data", "err", err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp_json)
 }

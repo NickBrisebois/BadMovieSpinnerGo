@@ -12,24 +12,25 @@ type TMDBHandler struct {
 	tmdbAPI *external.TMDBApi
 	logger  *slog.Logger
 
-	tmdbMovieCache map[string]dto.TMDBMovieDetails
+	tmdbMovieCache map[string]dto.TMDBMovieDetailResponse
 }
 
 func NewTMDBHandler(tmdbAccessToken string, logger *slog.Logger) *TMDBHandler {
 	tmdbAPI := external.NewTMDBApi(tmdbAccessToken, logger)
-	return &TMDBHandler{tmdbAPI: tmdbAPI, logger: logger}
+	return &TMDBHandler{tmdbAPI: tmdbAPI, logger: logger, tmdbMovieCache: make(map[string]dto.TMDBMovieDetailResponse)}
 }
 
-func (h *TMDBHandler) GetMovieIDFromURL(movieURL string) (string, error) {
+func (h *TMDBHandler) GetMovieIDFromURL(movieURL string) (*string, error) {
 	parsedURL, err := url.Parse(movieURL)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return path.Base(parsedURL.Path), nil
+	tmdbID := path.Base(parsedURL.Path)
+	return &tmdbID, nil
 }
 
-func (h *TMDBHandler) GetMovieData(tmdbID string) (*dto.TMDBMovieDetails, error) {
+func (h *TMDBHandler) GetMovieData(tmdbID string) (*dto.TMDBMovieDetailResponse, error) {
 	if movieData, ok := h.tmdbMovieCache[tmdbID]; ok {
 		return &movieData, nil
 	}

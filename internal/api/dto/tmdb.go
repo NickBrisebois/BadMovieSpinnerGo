@@ -1,25 +1,44 @@
 package dto
 
-import "encoding/json"
-
-type TMDBMovieDetails struct {
-	PosterPath  string  `json:"poster_path"`
-	Overview    string  `json:"overview"`
-	Title       string  `json:"title"`
+type TMDBMovieDetailResponse struct {
+	Adult               bool   `json:"adult"`
+	BackdropPath        string `json:"backdrop_path"`
+	BelongsToCollection any    `json:"belongs_to_collection"`
+	Budget              int    `json:"budget"`
+	Genres              []struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"genres"`
+	Homepage            string  `json:"homepage"`
+	ID                  int     `json:"id"`
+	ImdbID              string  `json:"imdb_id"`
+	OriginalLanguage    string  `json:"original_language"`
+	OriginalTitle       string  `json:"original_title"`
+	Overview            string  `json:"overview"`
+	Popularity          float64 `json:"popularity"`
+	PosterPath          string  `json:"poster_path"`
+	ProductionCompanies []struct {
+		ID            int    `json:"id"`
+		LogoPath      string `json:"logo_path"`
+		Name          string `json:"name"`
+		OriginCountry string `json:"origin_country"`
+	} `json:"production_companies"`
+	ProductionCountries []struct {
+		Iso31661 string `json:"iso_3166_1"`
+		Name     string `json:"name"`
+	} `json:"production_countries"`
+	ReleaseDate     string `json:"release_date"`
+	Revenue         int    `json:"revenue"`
+	Runtime         int    `json:"runtime"`
+	SpokenLanguages []struct {
+		EnglishName string `json:"english_name"`
+		Iso6391     string `json:"iso_639_1"`
+		Name        string `json:"name"`
+	} `json:"spoken_languages"`
+	Status      string  `json:"status"`
 	Tagline     string  `json:"tagline"`
-	VoteAverage float32 `json:"vote_average"`
-}
-
-func (m *TMDBMovieDetails) FromJSON(data []byte) error {
-	rawJSON := make(map[string]any)
-	if err := json.Unmarshal(data, &rawJSON); err != nil {
-		return err
-	}
-
-	m.PosterPath = rawJSON["poster_path"].(string)
-	m.Overview = rawJSON["overview"].(string)
-	m.Title = rawJSON["title"].(string)
-	m.Tagline = rawJSON["tagline"].(string)
-	m.VoteAverage = rawJSON["vote_average"].(float32)
-	return nil
+	Title       string  `json:"title"`
+	Video       bool    `json:"video"`
+	VoteAverage float64 `json:"vote_average"`
+	VoteCount   int     `json:"vote_count"`
 }

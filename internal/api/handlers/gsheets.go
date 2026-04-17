@@ -47,13 +47,13 @@ func (h *GSheetsHandler) enrichMovieList(rawMovies []dto.GSheetsMoviesEntry) ([]
 			continue
 		}
 
-		tmdbData, err := h.tmdbHandler.GetMovieData(tmdbID)
+		tmdbData, err := h.tmdbHandler.GetMovieData(*tmdbID)
 		if err != nil {
 			return nil, err
 		}
 		movies = append(movies, models.MovieMeta{
 			Title:       tmdbData.Title,
-			TMDBId:      tmdbID,
+			TMDBId:      *tmdbID,
 			Watched:     movie.Watched,
 			SuggestedBy: movie.SuggestedBy,
 			PosterURL:   tmdbData.PosterPath,

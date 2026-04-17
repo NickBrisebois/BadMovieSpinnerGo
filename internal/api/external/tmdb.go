@@ -35,20 +35,20 @@ func (t *TMDBApi) httpReq(method, url string, body io.Reader) (*http.Response, e
 	return http.DefaultClient.Do(req)
 }
 
-func (t *TMDBApi) FetchMovieData(tmdbID string) (*dto.TMDBMovieDetails, error) {
+func (t *TMDBApi) FetchMovieData(tmdbID string) (*dto.TMDBMovieDetailResponse, error) {
 	getURL := fmt.Sprintf(TMDBGetMovieURL, tmdbID, Lang)
 	resp, err := t.httpReq("GET", getURL, nil)
 	if err != nil {
 		t.logger.Error("failed to fetch movie data", "error", err)
-		// return ""
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var movieDetails dto.TMDBMovieDetails
+	var movieDetails dto.TMDBMovieDetailResponse
 	err = json.NewDecoder(resp.Body).Decode(&movieDetails)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return &movieDetails, nil
 }

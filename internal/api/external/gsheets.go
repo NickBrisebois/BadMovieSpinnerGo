@@ -81,6 +81,5 @@ func (g *GoogleSheetsAPI) GetMovieData() ([]dto.GSheetsMoviesEntry, error) {
 		return nil, err
 	}
 
-	g.logger.Debug("parsed", "data", movies)
 	return movies, nil
 }
