@@ -6,6 +6,21 @@ definitions:
         example: ok
         type: string
     type: object
+  models.MovieMeta:
+    properties:
+      description:
+        type: string
+      posterURL:
+        type: string
+      suggestedBy:
+        type: string
+      title:
+        type: string
+      tmdbid:
+        type: string
+      watched:
+        type: boolean
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -36,7 +51,7 @@ paths:
           description: OK
           schema:
             items:
-              type: string
+              $ref: '#/definitions/models.MovieMeta'
             type: array
       summary: Handle HTTP request for retrieving list of movies from Google Sheets
         (specified by local spreadsheetID).

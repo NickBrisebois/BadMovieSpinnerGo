@@ -44,7 +44,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "$ref": "#/definitions/models.MovieMeta"
                             }
                         }
                     }
@@ -59,6 +59,29 @@
                 "status": {
                     "type": "string",
                     "example": "ok"
+                }
+            }
+        },
+        "models.MovieMeta": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "posterURL": {
+                    "type": "string"
+                },
+                "suggestedBy": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "tmdbid": {
+                    "type": "string"
+                },
+                "watched": {
+                    "type": "boolean"
                 }
             }
         }

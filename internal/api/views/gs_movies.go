@@ -29,7 +29,7 @@ func NewGSheetsView(credentialsFilePath, spreadsheetID, tmdbAccessToken string, 
 //	@Summary	Handle HTTP request for retrieving list of movies from Google Sheets (specified by local spreadsheetID).
 //	@Tags		movies
 //	@Produce	json
-//	@Success	200	{array}	string
+//	@Success	200	{array}	models.MovieMeta
 //	@Router		/sheets/movies [get]
 func (h *GSheetsView) GetMovieList(w http.ResponseWriter, r *http.Request) {
 	movies, err := h.gsheetsHandler.GetAllMovies()
@@ -40,6 +40,8 @@ func (h *GSheetsView) GetMovieList(w http.ResponseWriter, r *http.Request) {
 	resp_json, err := json.Marshal(movies)
 	if err != nil {
 		h.logger.Error("failed to marshal movie data", "err", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
