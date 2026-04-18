@@ -7,7 +7,7 @@ import (
 	"log/slog"
 )
 
-type GSheetsHandler struct {
+type GSMoviesHandler struct {
 	sheetsAPI   *external.GoogleSheetsAPI
 	tmdbHandler *TMDBHandler
 	logger      *slog.Logger
@@ -15,9 +15,10 @@ type GSheetsHandler struct {
 
 func NewGSheetsHandler(
 	credentialsFilePath, spreadsheetID, tmdbAccessToken string,
+	imageHandler *ImageHandler,
 	logger *slog.Logger,
 
-) (*GSheetsHandler, error) {
+) (*GSMoviesHandler, error) {
 
 	sheetsAPI, err := external.NewGoogleSheetsAPI(
 		credentialsFilePath,
@@ -29,8 +30,8 @@ func NewGSheetsHandler(
 		return nil, err
 	}
 
-	tmdbHandler := NewTMDBHandler(tmdbAccessToken, logger)
-	handler := &GSheetsHandler{
+	tmdbHandler := NewTMDBHandler(tmdbAccessToken, imageHandler, logger)
+	handler := &GSMoviesHandler{
 		sheetsAPI:   sheetsAPI,
 		tmdbHandler: tmdbHandler,
 		logger:      logger,
@@ -38,7 +39,7 @@ func NewGSheetsHandler(
 	return handler, nil
 }
 
-func (h *GSheetsHandler) enrichMovieList(rawMovies []dto.GSheetsMoviesEntry) ([]models.MovieMeta, error) {
+func (h *GSMoviesHandler) enrichMovieList(rawMovies []dto.GSheetsMoviesEntry) ([]models.MovieMeta, error) {
 	var movies []models.MovieMeta
 	for _, movie := range rawMovies {
 		tmdbID, err := h.tmdbHandler.GetMovieIDFromURL(movie.TMDBLink)
@@ -63,7 +64,7 @@ func (h *GSheetsHandler) enrichMovieList(rawMovies []dto.GSheetsMoviesEntry) ([]
 	return movies, nil
 }
 
-func (h *GSheetsHandler) GetAllMovies() ([]models.MovieMeta, error) {
+func (h *GSMoviesHandler) GetAllMovies() ([]models.MovieMeta, error) {
 	movies, err := h.sheetsAPI.GetMovieData()
 	if err != nil {
 		return nil, err

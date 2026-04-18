@@ -1,7 +1,6 @@
 package api
 
 import (
-	"NickBrisebois/BadMovieSpinnerGo/internal/api/handlers"
 	"NickBrisebois/BadMovieSpinnerGo/internal/api/views"
 	"log/slog"
 	"net/http"
@@ -14,6 +13,7 @@ func NewRouter(config *Config, logger *slog.Logger) (http.Handler, error) {
 		config.Auth.GCPServiceAccountKeyPath,
 		config.GSheets.SheetID,
 		config.Auth.TMDBReadAccessToken,
+		config.Cache.ImageCacheDir,
 		logger,
 	)
 	if err != nil {
@@ -21,8 +21,9 @@ func NewRouter(config *Config, logger *slog.Logger) (http.Handler, error) {
 		return nil, err
 	}
 
-	mux.HandleFunc("/healthz", handlers.GetHealthz)
+	mux.HandleFunc("/healthz", views.GetHealthz)
 	mux.HandleFunc("/sheets/movies", gSheetsHandler.GetMovieList)
+	mux.HandleFunc("/sheets/movies/{tmdbID}/poster", gSheetsHandler.GetMoviePoster)
 
 	return mux, nil
 }

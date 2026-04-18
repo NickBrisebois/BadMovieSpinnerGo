@@ -39,3 +39,6 @@ notes.md
 tmp
 test_image.png
 __debug*
+
+# .cache is the default image cache directory
+.cache

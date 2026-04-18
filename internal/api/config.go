@@ -23,6 +23,9 @@ type Config struct {
 	GSheets struct {
 		SheetID string `env:"GOOGLE_SHEET_ID"`
 	}
+	Cache struct {
+		ImageCacheDir string `env:"IMAGE_CACHE_DIR"`
+	}
 }
 
 func LoadConfig(conf *Config) error {

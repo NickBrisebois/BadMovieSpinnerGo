@@ -9,15 +9,21 @@ import (
 )
 
 type TMDBHandler struct {
-	tmdbAPI *external.TMDBApi
-	logger  *slog.Logger
+	tmdbAPI      *external.TMDBApi
+	imageHandler *ImageHandler
+	logger       *slog.Logger
 
 	tmdbMovieCache map[string]dto.TMDBMovieDetailResponse
 }
 
-func NewTMDBHandler(tmdbAccessToken string, logger *slog.Logger) *TMDBHandler {
+func NewTMDBHandler(tmdbAccessToken string, imageHandler *ImageHandler, logger *slog.Logger) *TMDBHandler {
 	tmdbAPI := external.NewTMDBApi(tmdbAccessToken, logger)
-	return &TMDBHandler{tmdbAPI: tmdbAPI, logger: logger, tmdbMovieCache: make(map[string]dto.TMDBMovieDetailResponse)}
+	return &TMDBHandler{
+		tmdbAPI:        tmdbAPI,
+		imageHandler:   imageHandler,
+		logger:         logger,
+		tmdbMovieCache: make(map[string]dto.TMDBMovieDetailResponse),
+	}
 }
 
 func (h *TMDBHandler) GetMovieIDFromURL(movieURL string) (*string, error) {
@@ -42,4 +48,29 @@ func (h *TMDBHandler) GetMovieData(tmdbID string) (*dto.TMDBMovieDetailResponse,
 
 	h.tmdbMovieCache[tmdbID] = *fetchedMovieData
 	return fetchedMovieData, nil
+}
+
+func (h *TMDBHandler) GetMoviePoster(tmdbID string) ([]byte, error) {
+	// Check cache for the image before we make any requests
+	posterImgData, found := h.imageHandler.GetImage(tmdbID)
+	if found {
+		return posterImgData, nil
+	}
+
+	// this isn't ideal, but, lookup the movie data to get the movie poster path.
+	// if this method is being called then it's more likely than not that we've
+	// already cached the data so this isn't expensive
+	movieData, err := h.GetMovieData(tmdbID)
+	if err != nil {
+		return nil, err
+	}
+
+	// If no cached image then we must resort to fetching it from TMDB :(
+	fetchedPosterImg, err := h.tmdbAPI.FetchMoviePoster(movieData.PosterPath)
+	if err != nil {
+		return nil, err
+	}
+
+	h.imageHandler.CacheImage(fetchedPosterImg, tmdbID)
+	return fetchedPosterImg, nil
 }

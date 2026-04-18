@@ -29,7 +29,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.HealthzResponse"
+                            "$ref": "#/definitions/views.HealthzResponse"
                         }
                     }
                 }
@@ -56,18 +56,28 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/sheets/movies/{tmdbID}/poster": {
+            "get": {
+                "produces": [
+                    "image/jpeg"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Handle HTTP request for retrieving a movie poster from TMDB (specified by TMDB ID).",
+                "responses": {
+                    "200": {
+                        "description": "movie poster",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "handlers.HealthzResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string",
-                    "example": "ok"
-                }
-            }
-        },
         "models.MovieMeta": {
             "type": "object",
             "properties": {
@@ -88,6 +98,15 @@ const docTemplate = `{
                 },
                 "watched": {
                     "type": "boolean"
+                }
+            }
+        },
+        "views.HealthzResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "ok"
                 }
             }
         }

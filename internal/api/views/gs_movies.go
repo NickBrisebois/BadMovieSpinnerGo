@@ -8,18 +8,23 @@ import (
 )
 
 type GSheetsView struct {
-	gsheetsHandler *handlers.GSheetsHandler
+	gsheetsHandler *handlers.GSMoviesHandler
+	imageHandler   *handlers.ImageHandler
 	tmdbHandler    *handlers.TMDBHandler
 	logger         *slog.Logger
 }
 
-func NewGSheetsView(credentialsFilePath, spreadsheetID, tmdbAccessToken string, logger *slog.Logger) (*GSheetsView, error) {
-	gsheetsHandler, err := handlers.NewGSheetsHandler(credentialsFilePath, spreadsheetID, tmdbAccessToken, logger)
+func NewGSheetsView(credentialsFilePath, spreadsheetID, tmdbAccessToken, imageCacheDir string, logger *slog.Logger) (*GSheetsView, error) {
+	imageHandler := handlers.NewImageHandler(imageCacheDir, logger)
+	gsheetsHandler, err := handlers.NewGSheetsHandler(credentialsFilePath, spreadsheetID, tmdbAccessToken, imageHandler, logger)
+	tmdbHandler := handlers.NewTMDBHandler(tmdbAccessToken, imageHandler, logger)
 	if err != nil {
 		return nil, err
 	}
 	return &GSheetsView{
 		gsheetsHandler: gsheetsHandler,
+		imageHandler:   imageHandler,
+		tmdbHandler:    tmdbHandler,
 		logger:         logger,
 	}, nil
 }
@@ -46,4 +51,31 @@ func (h *GSheetsView) GetMovieList(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(resp_json)
+}
+
+// GetMoviePoster
+//
+//	@Summary	Handle HTTP request for retrieving a movie poster from TMDB (specified by TMDB ID).
+//	@Tags		movies
+//	@Produce	image/jpeg
+//	@Success	200	{file}	file	"movie poster"
+//	@Router		/sheets/movies/{tmdbID}/poster [get]
+func (h *GSheetsView) GetMoviePoster(w http.ResponseWriter, r *http.Request) {
+	tmdbID := r.PathValue("tmdbID")
+	if tmdbID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("tmdbID is required"))
+		return
+	}
+
+	posterImgData, err := h.tmdbHandler.GetMoviePoster(tmdbID)
+	if err != nil {
+		h.logger.Error("failed to retrieve movie poster", "err", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.WriteHeader(http.StatusOK)
+	w.Write(posterImgData)
 }

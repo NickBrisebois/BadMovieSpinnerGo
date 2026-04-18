@@ -1,11 +1,5 @@
 basePath: /
 definitions:
-  handlers.HealthzResponse:
-    properties:
-      status:
-        example: ok
-        type: string
-    type: object
   models.MovieMeta:
     properties:
       description:
@@ -20,6 +14,12 @@ definitions:
         type: string
       watched:
         type: boolean
+    type: object
+  views.HealthzResponse:
+    properties:
+      status:
+        example: ok
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -38,7 +38,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.HealthzResponse'
+            $ref: '#/definitions/views.HealthzResponse'
       summary: Check API health
       tags:
       - health healthz
@@ -55,6 +55,19 @@ paths:
             type: array
       summary: Handle HTTP request for retrieving list of movies from Google Sheets
         (specified by local spreadsheetID).
+      tags:
+      - movies
+  /sheets/movies/{tmdbID}/poster:
+    get:
+      produces:
+      - image/jpeg
+      responses:
+        "200":
+          description: movie poster
+          schema:
+            type: file
+      summary: Handle HTTP request for retrieving a movie poster from TMDB (specified
+        by TMDB ID).
       tags:
       - movies
 swagger: "2.0"
