@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 type GSheetsView struct {
@@ -61,10 +62,11 @@ func (h *GSheetsView) GetMovieList(w http.ResponseWriter, r *http.Request) {
 //	@Success	200	{file}	file	"movie poster"
 //	@Router		/sheets/movies/{tmdbID}/poster [get]
 func (h *GSheetsView) GetMoviePoster(w http.ResponseWriter, r *http.Request) {
-	tmdbID := r.PathValue("tmdbID")
-	if tmdbID == "" {
+	strTMDBId := r.PathValue("tmdbID")
+	tmdbID, err := strconv.Atoi(strTMDBId)
+	if strTMDBId == "" || err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("tmdbID is required"))
+		w.Write([]byte("invalid TMDB movie ID"))
 		return
 	}
 

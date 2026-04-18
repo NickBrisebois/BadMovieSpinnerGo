@@ -11,7 +11,7 @@ import (
 
 const (
 	Lang                  = "en-US"
-	TMDBGetMovieURL       = "https://api.themoviedb.org/3/movie/%s?&language=%s"
+	TMDBGetMovieURL       = "https://api.themoviedb.org/3/movie/%d?&language=%s"
 	TMDBGetMoviePosterURL = "https://image.tmdb.org/t/p/w500%s"
 )
 
@@ -37,7 +37,7 @@ func (t *TMDBApi) httpReq(method, url string, body io.Reader) (*http.Response, e
 	return http.DefaultClient.Do(req)
 }
 
-func (t *TMDBApi) FetchMovieData(tmdbID string) (*dto.TMDBMovieDetailResponse, error) {
+func (t *TMDBApi) FetchMovieData(tmdbID int) (*dto.TMDBMovieDetailResponse, error) {
 	getURL := fmt.Sprintf(TMDBGetMovieURL, tmdbID, Lang)
 	resp, err := t.httpReq("GET", getURL, nil)
 	if err != nil {

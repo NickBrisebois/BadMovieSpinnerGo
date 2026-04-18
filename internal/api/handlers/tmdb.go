@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/url"
 	"path"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -14,7 +16,8 @@ type TMDBHandler struct {
 	imageHandler *ImageHandler
 	logger       *slog.Logger
 
-	tmdbMovieCache map[string]dto.TMDBMovieDetailResponse
+	tmdbMovieCache map[int]dto.TMDBMovieDetailResponse
+	cacheMu        sync.RWMutex
 }
 
 func NewTMDBHandler(tmdbAccessToken string, imageHandler *ImageHandler, logger *slog.Logger) *TMDBHandler {
@@ -23,23 +26,52 @@ func NewTMDBHandler(tmdbAccessToken string, imageHandler *ImageHandler, logger *
 		tmdbAPI:        tmdbAPI,
 		imageHandler:   imageHandler,
 		logger:         logger,
-		tmdbMovieCache: make(map[string]dto.TMDBMovieDetailResponse),
+		tmdbMovieCache: make(map[int]dto.TMDBMovieDetailResponse),
 	}
 }
 
-func (h *TMDBHandler) GetMovieIDFromURL(movieURL string) (*string, error) {
+func (h *TMDBHandler) getCacheItem(tmdbID int) (*dto.TMDBMovieDetailResponse, bool) {
+	h.cacheMu.RLock()
+	if movieData, ok := h.tmdbMovieCache[tmdbID]; ok {
+		defer h.cacheMu.RUnlock()
+		return &movieData, true
+	}
+	defer h.cacheMu.RUnlock()
+	return nil, false
+}
+
+func (h *TMDBHandler) setCacheItem(tmdbID int, movieDetailResponse *dto.TMDBMovieDetailResponse) {
+	h.cacheMu.Lock()
+	h.tmdbMovieCache[tmdbID] = *movieDetailResponse
+	h.cacheMu.Unlock()
+}
+
+func (h *TMDBHandler) GetMovieIDFromURL(movieURL string) (int, error) {
 	parsedURL, err := url.Parse(movieURL)
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	tmdbID := path.Base(parsedURL.Path)
-	return &tmdbID, nil
+	// get the named TMDB ID from the URL (ie. "950387-a-minecraft-movie") then pull the int ID out
+	namedTMDBID := path.Base(parsedURL.Path)
+	strSplitIndex := strings.Index(namedTMDBID, "-")
+	if strSplitIndex == -1 {
+		// possibly already just an int so convert and return
+		parsedID, err := strconv.Atoi(namedTMDBID)
+		return parsedID, err
+	}
+
+	tmdbID := namedTMDBID[:strSplitIndex]
+	parsedID, err := strconv.Atoi(tmdbID)
+	if err != nil {
+		return -1, err
+	}
+	return parsedID, err
 }
 
-func (h *TMDBHandler) GetMovieData(tmdbID string) (*dto.TMDBMovieDetailResponse, error) {
-	if movieData, ok := h.tmdbMovieCache[tmdbID]; ok {
-		return &movieData, nil
+func (h *TMDBHandler) GetMovieData(tmdbID int) (*dto.TMDBMovieDetailResponse, error) {
+	if movieData, ok := h.getCacheItem(tmdbID); ok {
+		return movieData, nil
 	}
 
 	fetchedMovieData, err := h.tmdbAPI.FetchMovieData(tmdbID)
@@ -47,11 +79,11 @@ func (h *TMDBHandler) GetMovieData(tmdbID string) (*dto.TMDBMovieDetailResponse,
 		return nil, err
 	}
 
-	h.tmdbMovieCache[tmdbID] = *fetchedMovieData
+	h.setCacheItem(tmdbID, fetchedMovieData)
 	return fetchedMovieData, nil
 }
 
-func (t *TMDBHandler) BulkFetchMovieData(tmdbIDs []string) (*[]dto.TMDBMovieDetailResponse, error) {
+func (t *TMDBHandler) BulkFetchMovieData(tmdbIDs []int) (map[int]dto.TMDBMovieDetailResponse, error) {
 	movieDetailsChan := make(chan *dto.TMDBMovieDetailResponse)
 
 	// tmdb doesn't seem to have a bulk movie API so we have to hit them a bunch of times :(
@@ -67,18 +99,21 @@ func (t *TMDBHandler) BulkFetchMovieData(tmdbIDs []string) (*[]dto.TMDBMovieDeta
 			movieDetailsChan <- movieData
 		})
 	}
-	reqWaitGroup.Wait()
 
-	close(movieDetailsChan)
-	var movieDetails []dto.TMDBMovieDetailResponse
+	go func() {
+		reqWaitGroup.Wait()
+		close(movieDetailsChan)
+	}()
+
+	movieDetails := make(map[int]dto.TMDBMovieDetailResponse)
 	for movieData := range movieDetailsChan {
-		movieDetails = append(movieDetails, *movieData)
+		movieDetails[movieData.ID] = *movieData
 	}
 
-	return &movieDetails, nil
+	return movieDetails, nil
 }
 
-func (h *TMDBHandler) GetMoviePoster(tmdbID string) ([]byte, error) {
+func (h *TMDBHandler) GetMoviePoster(tmdbID int) ([]byte, error) {
 	// Check cache for the image before we make any requests
 	posterImgData, found := h.imageHandler.GetImage(tmdbID)
 	if found {
