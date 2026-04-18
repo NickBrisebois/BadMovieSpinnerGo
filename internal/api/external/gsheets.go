@@ -56,7 +56,6 @@ func (g *GoogleSheetsAPI) extractMoviesFromSheetData(sheetData [][]any) ([]dto.G
 		entries = append(entries, entry)
 	}
 
-	g.logger.Debug("Parsed", "data", entries)
 	return entries, nil
 }
 

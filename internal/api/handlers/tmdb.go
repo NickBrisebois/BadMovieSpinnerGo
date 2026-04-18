@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/url"
 	"path"
+	"sync"
 )
 
 type TMDBHandler struct {
@@ -48,6 +49,33 @@ func (h *TMDBHandler) GetMovieData(tmdbID string) (*dto.TMDBMovieDetailResponse,
 
 	h.tmdbMovieCache[tmdbID] = *fetchedMovieData
 	return fetchedMovieData, nil
+}
+
+func (t *TMDBHandler) BulkFetchMovieData(tmdbIDs []string) (*[]dto.TMDBMovieDetailResponse, error) {
+	movieDetailsChan := make(chan *dto.TMDBMovieDetailResponse)
+
+	// tmdb doesn't seem to have a bulk movie API so we have to hit them a bunch of times :(
+	// to speed things up for when we don't have the data cached, we request each movie concurrently
+	var reqWaitGroup sync.WaitGroup
+	for _, id := range tmdbIDs {
+		reqWaitGroup.Go(func() {
+			movieData, err := t.GetMovieData(id)
+			if err != nil {
+				t.logger.Error("failed to fetch movie data", "tmdbID", id, "error", err)
+				return
+			}
+			movieDetailsChan <- movieData
+		})
+	}
+	reqWaitGroup.Wait()
+
+	close(movieDetailsChan)
+	var movieDetails []dto.TMDBMovieDetailResponse
+	for movieData := range movieDetailsChan {
+		movieDetails = append(movieDetails, *movieData)
+	}
+
+	return &movieDetails, nil
 }
 
 func (h *TMDBHandler) GetMoviePoster(tmdbID string) ([]byte, error) {

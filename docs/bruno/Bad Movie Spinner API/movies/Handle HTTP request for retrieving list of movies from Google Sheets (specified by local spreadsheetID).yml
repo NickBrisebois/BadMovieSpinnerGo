@@ -33,3 +33,46 @@ examples:
       body:
         type: text
         data: ""
+  - name: example
+    request:
+      url: "{{baseUrl}}/sheets/movies"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: date
+          value: Sat, 18 Apr 2026 14:36:21 GMT
+        - name: content-type
+          value: text/plain; charset=utf-8
+        - name: transfer-encoding
+          value: chunked
+      body:
+        type: text
+        data: |-
+          [
+            {
+              "Title": "A Minecraft Movie",
+              "TMDBId": "950387-a-minecraft-movie",
+              "Watched": true,
+              "SuggestedBy": "Brianna",
+              "PosterURL": "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg",
+              "Description": "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve."
+            },
+            {
+              "Title": "Tammy and the T-Rex",
+              "TMDBId": "55563-tammy-and-the-t-rex",
+              "Watched": false,
+              "SuggestedBy": "Nick",
+              "PosterURL": "/uT3W8PIO0NUZqaSxsgNVKoDij1e.jpg",
+              "Description": "An evil scientist implants the brain of a murdered high school student into an animatronic Tyrannosaurus, who later wreaks vengeance on the bullies who killed him, and is reunited with his sweetheart."
+            },
+            {
+              "Title": "Joshua and the Promised Land",
+              "TMDBId": "412823-joshua-and-the-promised-land",
+              "Watched": true,
+              "SuggestedBy": "Shon",
+              "PosterURL": "/nyv2rXXdTrtAUpCEqRqFpYTtmiV.jpg",
+              "Description": "“Joshua and the Promised Land” comes as a heartwarming tale for the whole family in the tradition of C.S. Lewis and J.R.R. Tolkien – about the courage one learns from trusting God – and as a result, finding the ability to overcome many of life’s problems. Join young Joshua Carter on an epic dream-adventure – from the parting of the Red Sea as the Hebrews escape from Egypt, through forty years in the wilderness, finally to the fall of the sinful city of Jericho."
+            }
+          ]

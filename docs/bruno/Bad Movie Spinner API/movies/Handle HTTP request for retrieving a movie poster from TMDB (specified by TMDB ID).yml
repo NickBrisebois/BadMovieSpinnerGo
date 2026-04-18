@@ -1,0 +1,39 @@
+info:
+  name: Handle HTTP request for retrieving a movie poster from TMDB (specified by TMDB ID).
+  type: http
+  seq: 2
+  tags:
+    - movies
+
+http:
+  method: GET
+  url: "{{baseUrl}}/sheets/movies/:tmdbID/poster"
+  params:
+    - name: tmdbID
+      value: 950387-a-minecraft-movie
+      type: path
+  auth: inherit
+
+runtime:
+  variables:
+    - name: baseUrl
+      value: http://localhost:8080
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: movie poster
+    request:
+      url: "{{baseUrl}}/sheets/movies/:tmdbID/poster"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      body:
+        type: text
+        data: ""

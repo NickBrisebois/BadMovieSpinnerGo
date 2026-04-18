@@ -28,6 +28,7 @@ func NewTMDBApi(tmdbAPIKey string, logger *slog.Logger) *TMDBApi {
 }
 
 func (t *TMDBApi) httpReq(method, url string, body io.Reader) (*http.Response, error) {
+	t.logger.Debug("httpReq", "method", method, "url", url)
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err

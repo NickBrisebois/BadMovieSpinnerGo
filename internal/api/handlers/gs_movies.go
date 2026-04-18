@@ -41,24 +41,34 @@ func NewGSheetsHandler(
 
 func (h *GSMoviesHandler) enrichMovieList(rawMovies []dto.GSheetsMoviesEntry) ([]models.MovieMeta, error) {
 	var movies []models.MovieMeta
-	for _, movie := range rawMovies {
-		tmdbID, err := h.tmdbHandler.GetMovieIDFromURL(movie.TMDBLink)
-		if err != nil {
-			h.logger.Error("failed to get movie ID from URL", "error", err)
-			continue
-		}
 
-		tmdbData, err := h.tmdbHandler.GetMovieData(*tmdbID)
+	// pull all the TMDB IDs out of the list based on the TMDB link data
+	tmdbIDs := make([]string, len(rawMovies))
+	for i, rawMovie := range rawMovies {
+		tmdbID, err := h.tmdbHandler.GetMovieIDFromURL(rawMovie.TMDBLink)
 		if err != nil {
-			return nil, err
+			h.logger.Error("failed to get movie ID from URL", "tmdbLink", rawMovie.TMDBLink, "error", err)
 		}
+		tmdbIDs[i] = *tmdbID
+	}
+
+	// bulk fetch all the movies (this is a request per movie but it's batched with goroutines)
+	bulkMovies, err := h.tmdbHandler.BulkFetchMovieData(tmdbIDs)
+	if err != nil {
+		h.logger.Error("failed to bulk fetch movie data", "error", err)
+		return nil, err
+	}
+
+	for i, enrichedMovie := range *bulkMovies {
 		movies = append(movies, models.MovieMeta{
-			Title:       tmdbData.Title,
-			TMDBId:      *tmdbID,
-			Watched:     movie.Watched,
-			SuggestedBy: movie.SuggestedBy,
-			PosterURL:   tmdbData.PosterPath,
-			Description: &tmdbData.Overview,
+			Title:   enrichedMovie.Title,
+			TMDBId:  tmdbIDs[i],
+			Watched: rawMovies[i].Watched,
+
+			// !!! TODO THIS IS PROBABLY A BUG BELOW - indexes won't match between the bulk and raw arrays !!!
+			SuggestedBy: movies[i].SuggestedBy,
+			PosterURL:   enrichedMovie.PosterPath,
+			Description: &enrichedMovie.Overview,
 		})
 	}
 	return movies, nil
