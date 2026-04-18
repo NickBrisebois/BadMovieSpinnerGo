@@ -19,4 +19,12 @@
     "program": "cmd/api/main.go",
     "envFile": ".env",
   },
+  {
+    "label": "Run Spinner",
+    "adapter": "Delve",
+    "request": "launch",
+    "mode": "debug",
+    "program": "cmd/spinner/main.go",
+    "envFile": ".env",
+  },
 ]
