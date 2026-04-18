@@ -9,7 +9,7 @@ import (
 func NewRouter(config *Config, logger *slog.Logger) (http.Handler, error) {
 	mux := http.NewServeMux()
 
-	gSheetsHandler, err := views.NewGSheetsView(
+	gsMoviesView, err := views.NewGSheetsView(
 		config.Auth.GCPServiceAccountKeyPath,
 		config.GSheets.SheetID,
 		config.Auth.TMDBReadAccessToken,
@@ -22,8 +22,8 @@ func NewRouter(config *Config, logger *slog.Logger) (http.Handler, error) {
 	}
 
 	mux.HandleFunc("/healthz", views.GetHealthz)
-	mux.HandleFunc("/sheets/movies", gSheetsHandler.GetMovieList)
-	mux.HandleFunc("/sheets/movies/{tmdbID}/poster", gSheetsHandler.GetMoviePoster)
+	mux.HandleFunc("/sheets/movies", gsMoviesView.GetMovieList)
+	mux.HandleFunc("/sheets/movies/{tmdbID}/poster", gsMoviesView.GetMoviePoster)
 
 	return mux, nil
 }

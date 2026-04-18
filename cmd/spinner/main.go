@@ -2,6 +2,7 @@ package main
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner"
+	"NickBrisebois/BadMovieSpinnerGo/pkg/config"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -30,6 +31,9 @@ func (g *BadMovieSpinner) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func main() {
+	spinnerConfig := &spinner.SpinnerConfig{}
+	config.LoadConfig(spinnerConfig)
+
 	badMovieSpinner := BadMovieSpinner{spinner: &spinner.Spinner{}}
 	badMovieSpinner.spinner.Init(
 		screenWidth/2,

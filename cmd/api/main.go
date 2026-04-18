@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"NickBrisebois/BadMovieSpinnerGo/internal/api"
+	"NickBrisebois/BadMovieSpinnerGo/pkg/config"
 
 	_ "NickBrisebois/BadMovieSpinnerGo/docs"
 )
@@ -23,14 +24,14 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	config := &api.Config{}
-	err := api.LoadConfig(config)
+	apiConfig := &api.Config{}
+	err := config.LoadConfig(apiConfig)
 	if err != nil {
 		logger.Error("failed to load config", "err", err)
 		os.Exit(1)
 	}
 
-	movie_api, err := api.NewAPIServer(config, logger)
+	movie_api, err := api.NewAPIServer(apiConfig, logger)
 	if err != nil {
 		logger.Error("failed to create API server", "err", err)
 		os.Exit(1)
