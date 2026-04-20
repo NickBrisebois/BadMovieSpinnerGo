@@ -2,8 +2,8 @@ package api
 
 type Config struct {
 	Server struct {
-		Host string `env:"SERVER_HOST"`
-		Port int    `env:"SERVER_PORT"`
+		Host string `env:"SERVER_HOST" default:"localhost"`
+		Port int    `env:"SERVER_PORT" default:"8080"`
 	}
 	Auth struct {
 		GCPServiceAccountKeyPath string `env:"GOOGLE_SERVICE_ACCOUNT_KEY_PATH"`
