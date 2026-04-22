@@ -20,8 +20,6 @@ type DrawHandler struct {
 
 	maskRenderTarget  *ebiten.Image
 	sliceRenderTarget *ebiten.Image
-
-	imageCache *ImageCache
 }
 
 // outerSliceArcSegments defines how many segments to draw for the outer arc connecting the two corners
@@ -41,7 +39,6 @@ func NewDrawHandler(
 		RadiusY:           radiusY,
 		maskRenderTarget:  nil,
 		sliceRenderTarget: nil,
-		imageCache:        NewImageCache(),
 	}
 }
 
@@ -85,17 +82,22 @@ func (s *DrawHandler) getSlicePath(
 	return &path
 }
 
-func (s *DrawHandler) drawMaskToSlice(
-	screen *ebiten.Image,
-	slice *data.Slice,
-) {
+// getPosterScale returns the scale factor to apply to the poster image to fit it within the spinner wheel's slice bounds
+func (s *DrawHandler) getPosterScale(slice *data.Slice) float64 {
+	poster := slice.DrawProperties.SliceImage
+	initialWidth := float64(poster.Bounds().Dx())
+	initialHeight := float64(poster.Bounds().Dy())
 
+	targetWidth := float64(s.RadiusX * 2)
+	targetHeight := float64(s.RadiusY * 2)
+
+	return math.Max(targetWidth/initialWidth, targetHeight/initialHeight)
 }
 
 func (s *DrawHandler) drawSlice(screen *ebiten.Image, slice *data.Slice) {
-	s.maskRenderTarget.Clear()
 
 	// generate the vector slice and then create a mask to fill in with a terrible movie's poster
+	s.maskRenderTarget.Clear()
 	slicePath := s.getSlicePath(slice)
 
 	// apply the the slice's vector shape to the masking layer
@@ -103,25 +105,22 @@ func (s *DrawHandler) drawSlice(screen *ebiten.Image, slice *data.Slice) {
 	maskFillOptions.ColorScale.ScaleWithColor(color.RGBA{255, 255, 255, 255})
 	vector.FillPath(s.maskRenderTarget, slicePath, nil, maskFillOptions)
 
-	// Draw the movie poster image to render target to be masked over mask target
 	s.sliceRenderTarget.Clear()
+
+	// Draw the movie poster image to render target to be masked over mask target
+	posterScale := s.getPosterScale(slice)
 	drawImageOptions := &ebiten.DrawImageOptions{}
-	s.sliceRenderTarget.DrawImage(s.imageCache.GetImage(), drawImageOptions)
+	drawImageOptions.GeoM.Scale(posterScale, posterScale)
+	s.sliceRenderTarget.DrawImage(slice.DrawProperties.SliceImage, drawImageOptions)
 
 	// Draw poster RT to mask RT
-	s.maskRenderTarget.Clear()
-	maskCopyOptions := &ebiten.DrawImageOptions{}
-	s.maskRenderTarget.DrawImage(s.sliceRenderTarget, maskCopyOptions)
-
-	// Apply mask blend
-	maskDrawOptions := &ebiten.DrawImageOptions{
+	maskCopyOptions := &ebiten.DrawImageOptions{
 		Blend: ebiten.BlendDestinationIn,
 	}
-	screen.DrawImage(s.maskRenderTarget, maskDrawOptions)
+	s.sliceRenderTarget.DrawImage(s.maskRenderTarget, maskCopyOptions)
 
 	// Draw prepared slice to screen
-	screenDrawImageOptions := &ebiten.DrawImageOptions{}
-	screen.DrawImage(s.maskRenderTarget, screenDrawImageOptions)
+	screen.DrawImage(s.sliceRenderTarget, nil)
 }
 
 func (s *DrawHandler) EnsureRenderTargets(screenW, screenH int) {
@@ -132,6 +131,8 @@ func (s *DrawHandler) EnsureRenderTargets(screenW, screenH int) {
 }
 
 func (s *DrawHandler) Draw(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0, 0, 0, 255})
+	s.EnsureRenderTargets(screen.Bounds().Dx(), screen.Bounds().Dy())
 
 	for i := range *s.Slices {
 		slice := &(*s.Slices)[i]

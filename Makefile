@@ -6,6 +6,9 @@ APP_WASM_OUT=./web/static/main.wasm
 APP_WASM_EXEC=./web/static/APP_WASM_exec.js
 APP_LINUX_BIN = ./bin/$(BIN_NAME)-spinner
 
+APP_WASM_BUILD_FLAGS="-tags=wasm"
+APP_LINUX_BUILD_FLAGS="-tags=linux"
+
 GOROOT=$(shell go env GOROOT)
 
 .PHONY: help
@@ -23,7 +26,7 @@ build-api:  ## Build the spinner's backend API
 
 .PHONY: build-linux
 build-linux:  ## Build the spinner as a Linux binary
-	go build -o $(APP_LINUX_BIN) ./cmd/spinner
+	go build $(APP_LINUX_BUILD_FLAGS) -o $(APP_LINUX_BIN) ./cmd/spinner
 
 .PHONY: copy-wasm-exec
 copy-wasm-exec:  ## Copy the wasm_exec.js dependency into the html app build directory
@@ -31,7 +34,7 @@ copy-wasm-exec:  ## Copy the wasm_exec.js dependency into the html app build dir
 
 .PHONY: build-wasm
 build-wasm: copy-wasm-exec  ## Build the spinner WASM binary
-	GOOS=js GOARCH=wasm go build -o $(APP_WASM_OUT) ./cmd/spinner/main.go
+	GOOS=js GOARCH=wasm go build $(APP_WASM_BUILD_FLAGS) -o $(APP_WASM_OUT) ./cmd/spinner/main.go
 
 .PHONY: debug
 debug: ## Run the spinner with live reload as a linux binary through delve (see `.air-spinner.toml` for debugger connection details)

@@ -8,7 +8,6 @@ type Config struct {
 	Auth struct {
 		GCPServiceAccountKeyPath string `env:"GOOGLE_SERVICE_ACCOUNT_KEY_PATH"`
 		GCPScopes                string `env:"GOOGLE_SCOPES"`
-		TMDBApiKey               string `env:"TMDB_API_KEY"`
 		TMDBReadAccessToken      string `env:"TMDB_ACCESS_TOKEN"`
 	}
 	GSheets struct {

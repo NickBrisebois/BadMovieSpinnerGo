@@ -1,20 +1,22 @@
 package spinner
 
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+	"strings"
+)
 
 type SpinnerConfig struct {
-	ServerHost string `env:"SERVER_HOST"`
-	ServerPort string `env:"SERVER_PORT"`
+	ServerHost string `env:"SERVER_HOST" default:"http://localhost"`
+	ServerPort string `env:"SERVER_PORT" default:"8080"`
 }
 
 func (c *SpinnerConfig) ServerURL() (string, error) {
-	if c.ServerHost == "" {
-		c.ServerHost = "http://localhost"
+	urlStr := fmt.Sprintf("%s:%s", c.ServerHost, c.ServerPort)
+	if !strings.HasPrefix(urlStr, "http") {
+		urlStr = "http://" + urlStr
 	}
-	if c.ServerPort == "" {
-		c.ServerPort = "8080"
-	}
-	serverURL, err := url.Parse(c.ServerHost + ":" + c.ServerPort)
+	serverURL, err := url.Parse(urlStr)
 	if err != nil {
 		return "", err
 	}

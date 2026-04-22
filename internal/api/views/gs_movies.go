@@ -38,6 +38,7 @@ func NewGSheetsView(credentialsFilePath, spreadsheetID, tmdbAccessToken, imageCa
 //	@Success	200	{array}	models.MovieMeta
 //	@Router		/sheets/movies [get]
 func (h *GSheetsView) GetMovieList(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("GetMovieList requested")
 	movies, err := h.gsheetsHandler.GetAllMovies()
 	if err != nil {
 		h.logger.Error("failed to retrieve movie data", "err", err)
@@ -62,6 +63,7 @@ func (h *GSheetsView) GetMovieList(w http.ResponseWriter, r *http.Request) {
 //	@Success	200	{file}	file	"movie poster"
 //	@Router		/sheets/movies/{tmdbID}/poster [get]
 func (h *GSheetsView) GetMoviePoster(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("GetMoviePoster requested")
 	strTMDBId := r.PathValue("tmdbID")
 	tmdbID, err := strconv.Atoi(strTMDBId)
 	if strTMDBId == "" || err != nil {

@@ -5,6 +5,7 @@ import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"image/color"
+	"log/slog"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -25,35 +26,60 @@ var (
 	}
 )
 
-type Spinner struct {
-	DrawHandler *render.DrawHandler
-	Wheel       *data.Wheel
+type SpinnerHandler struct {
+	drawHandler *render.DrawHandler
+	movieData   *data.MovieDataHandler
+	wheel       *data.Wheel
+	logger      *slog.Logger
 }
 
-func (s *Spinner) Init(centreX, centreY, radiusX, radiusY float32) {
-	movies := data.PullMovieList()
+func NewSpinner(movieDataHandler *data.MovieDataHandler, screenWidth, screenHeight int, logger *slog.Logger) *SpinnerHandler {
+	spinner := &SpinnerHandler{
+		movieData: movieDataHandler,
+		logger:    logger,
+	}
+
+	spinner.Init(
+		float32(screenWidth)/2,
+		float32(screenHeight)/2,
+		float32(screenWidth)/2,
+		float32(screenHeight)/2,
+	)
+
+	return spinner
+}
+
+func (s *SpinnerHandler) Init(centreX, centreY, radiusX, radiusY float32) {
+	movies := s.movieData.GetMovieList()
+	movies = movies[:7]
 	sliceAngle := render.GetSliceAngle(len(movies))
 
 	// Initialise the wheel with 0'd out animation properties
 	wheelDrawProperties := &data.WheelDrawProperties{
+		SliceAngle:          sliceAngle,
 		Rotation:            0,
 		AngularVelocity:     0.01,
-		AngularAcceleration: 0.00001,
-		SliceAngle:          sliceAngle,
+		AngularAcceleration: 0.01,
+		MaxVelocity:         0.01,
 	}
 
-	s.Wheel = &data.Wheel{
-		IsSpinning:     false,
+	s.wheel = &data.Wheel{
+		IsSpinning:     true,
 		DrawProperties: wheelDrawProperties,
 		Slices:         s.genSlices(sliceAngle, movies),
 	}
-	s.DrawHandler = render.NewDrawHandler(s.Wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
+	s.drawHandler = render.NewDrawHandler(s.wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
 }
 
-func (s *Spinner) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]data.Slice {
+func (s *SpinnerHandler) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]data.Slice {
 	slices := make([]data.Slice, 0, len(movies))
 
 	for i, movie := range movies {
+		moviePoster := s.movieData.GetMoviePoster(movie.TMDBId)
+		if moviePoster == nil {
+			s.logger.Error("failed to get movie poster, not adding to spinner", "TMDBId", movie.TMDBId)
+			continue
+		}
 		slices = append(slices, *data.NewSlice(
 			i,
 			i,
@@ -61,21 +87,25 @@ func (s *Spinner) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]da
 			render.GetSliceEndAngle(i, sliceAngle),
 			movie,
 			sliceColours[i%len(sliceColours)],
+			moviePoster,
 		))
 	}
 
 	return &slices
 }
 
-func (s *Spinner) updateWheelState() {
-
-	render.UpdateAngularVelocityFromAcceleration(&s.Wheel.DrawProperties.AngularVelocity, s.Wheel.DrawProperties.AngularAcceleration)
-	render.UpdateRotationFromAngularVelocity(&s.Wheel.DrawProperties.Rotation, s.Wheel.DrawProperties.AngularVelocity)
-	rotation := s.Wheel.DrawProperties.Rotation
+func (s *SpinnerHandler) updateWheelState() {
+	render.UpdateAngularVelocityFromAcceleration(
+		&s.wheel.DrawProperties.AngularVelocity,
+		s.wheel.DrawProperties.AngularAcceleration,
+		s.wheel.DrawProperties.MaxVelocity,
+	)
+	render.UpdateRotationFromAngularVelocity(&s.wheel.DrawProperties.Rotation, s.wheel.DrawProperties.AngularVelocity)
+	rotation := s.wheel.DrawProperties.Rotation
 
 	// Update the wheel's rotation based on the updated slice angles
-	for i := range *s.Wheel.Slices {
-		sliceDrawProperties := (*s.Wheel.Slices)[i].DrawProperties
+	for i := range *s.wheel.Slices {
+		sliceDrawProperties := (*s.wheel.Slices)[i].DrawProperties
 		if sliceDrawProperties != nil {
 			sliceDrawProperties.StartAngle += rotation
 			sliceDrawProperties.EndAngle += rotation
@@ -83,17 +113,15 @@ func (s *Spinner) updateWheelState() {
 	}
 }
 
-func (s *Spinner) Update() {
-	if s.Wheel.Slices == nil || !s.Wheel.IsSpinning {
+func (s *SpinnerHandler) Update() {
+	if s.wheel.Slices == nil || !s.wheel.IsSpinning {
 		return
 	}
 
 	s.updateWheelState()
 }
 
-func (s *Spinner) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 0, 0, 255})
+func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 
-	s.DrawHandler.EnsureRenderTargets(screen.Bounds().Dx(), screen.Bounds().Dy())
-	s.DrawHandler.Draw(screen)
+	s.drawHandler.Draw(screen)
 }
