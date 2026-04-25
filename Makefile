@@ -6,8 +6,8 @@ APP_WASM_OUT=./web/static/main.wasm
 APP_WASM_EXEC=./web/static/APP_WASM_exec.js
 APP_LINUX_BIN = ./bin/$(BIN_NAME)-spinner
 
-APP_WASM_BUILD_FLAGS="-tags=wasm"
-APP_LINUX_BUILD_FLAGS="-tags=linux"
+APP_WASM_BUILD_FLAGS="-tags=js,wasm"
+APP_LINUX_BUILD_FLAGS="-tags=native"
 
 GOROOT=$(shell go env GOROOT)
 

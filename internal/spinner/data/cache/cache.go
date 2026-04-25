@@ -1,15 +1,17 @@
 package cache
 
-import "time"
+import (
+	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
+)
 
-type CacheEntry struct {
-	Data      []byte
-	UpdatedAt time.Time
-	ExpiresAt time.Time
+type movieListCachePayload struct {
+	// movieListCachePayload represents the structure written to a cache file
+	Movies []models.MovieMeta
 }
 
 type Cache interface {
-	Get(key string) (*CacheEntry, bool)
-	Put(key string, data []byte, expiresAt time.Time) error
-	Delete(key string) error
+	GetMoviePoster(key int) ([]byte, bool)
+	PutMoviePoster(key int, data []byte) error
+	GetMovieList() ([]models.MovieMeta, error)
+	PutMovieList(movies []models.MovieMeta) error
 }

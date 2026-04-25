@@ -1,6 +1,7 @@
 package data
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/cache"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/external"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"bytes"
@@ -13,34 +14,65 @@ import (
 type MovieDataHandler struct {
 	spinnerAPI *external.SpinnerAPI
 
-	// TODO: TTL caches
-	imageCache     map[int]*ebiten.Image
-	movieDataCache []models.MovieMeta
-	logger         *slog.Logger
+	memImageCache     map[int]*ebiten.Image
+	memMovieDataCache []models.MovieMeta
+
+	cache cache.Cache
+
+	logger *slog.Logger
 }
 
 func NewMovieDataHandler(spinnerAPI *external.SpinnerAPI, logger *slog.Logger) *MovieDataHandler {
-	return &MovieDataHandler{spinnerAPI: spinnerAPI, imageCache: make(map[int]*ebiten.Image), movieDataCache: make([]models.MovieMeta, 0), logger: logger}
+	cache, err := cache.NewCache(logger)
+	if err != nil {
+		logger.Error("failed to create cache", "error", err)
+		return nil
+	}
+	return &MovieDataHandler{
+		spinnerAPI:        spinnerAPI,
+		memImageCache:     make(map[int]*ebiten.Image),
+		memMovieDataCache: make([]models.MovieMeta, 0),
+		cache:             cache,
+		logger:            logger,
+	}
 }
 
 func (m *MovieDataHandler) GetMovieList() []models.MovieMeta {
-	movieList, err := m.spinnerAPI.GetMovies()
-	if err != nil {
-		return make([]models.MovieMeta, 0)
+	var movieList []models.MovieMeta
+	var err error
+
+	if movieList, err = m.cache.GetMovieList(); err != nil {
+		movieList, err = m.spinnerAPI.GetMovies()
+		if err != nil {
+			return make([]models.MovieMeta, 0)
+		}
+		m.cache.PutMovieList(movieList)
 	}
 
-	m.movieDataCache = movieList
+	m.memMovieDataCache = movieList
 	return movieList
 }
 
 func (m *MovieDataHandler) GetMoviePoster(tmdbID int) *ebiten.Image {
-	if img, ok := m.imageCache[tmdbID]; ok {
+
+	// first check if we have the poster in mem
+	if img, ok := m.memImageCache[tmdbID]; ok {
 		return img
 	}
 
-	rawPosterBytes, err := m.spinnerAPI.GetMoviePoster(tmdbID)
-	if err != nil {
-		return nil
+	// second, check if we have the poster cached in the filesystem/browser
+	rawPosterBytes, ok := m.cache.GetMoviePoster(tmdbID)
+	if !ok {
+		var err error
+		rawPosterBytes, err = m.spinnerAPI.GetMoviePoster(tmdbID)
+		if err != nil {
+			return nil
+		}
+
+		err = m.cache.PutMoviePoster(tmdbID, rawPosterBytes)
+		if err != nil {
+			m.logger.Error("failed to cache poster image", "tmdbID", tmdbID, "error", err)
+		}
 	}
 
 	rawPosterJpeg, err := jpeg.Decode(bytes.NewReader(rawPosterBytes))
@@ -50,6 +82,6 @@ func (m *MovieDataHandler) GetMoviePoster(tmdbID int) *ebiten.Image {
 	}
 
 	poster := ebiten.NewImageFromImage(rawPosterJpeg)
-	m.imageCache[tmdbID] = poster
-	return m.imageCache[tmdbID]
+	m.memImageCache[tmdbID] = poster
+	return m.memImageCache[tmdbID]
 }
