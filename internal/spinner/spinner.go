@@ -3,6 +3,7 @@ package spinner
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"image/color"
 	"log/slog"
@@ -28,18 +29,25 @@ var (
 
 type SpinnerHandler struct {
 	drawHandler *render.DrawHandler
+	uiHandler   *ui.UIHandler
 	movieData   *data.MovieDataHandler
 	wheel       *data.Wheel
 	logger      *slog.Logger
 }
 
-func NewSpinner(movieDataHandler *data.MovieDataHandler, screenWidth, screenHeight int, logger *slog.Logger) *SpinnerHandler {
+func NewSpinner(
+	movieDataHandler *data.MovieDataHandler,
+	screenWidth, screenHeight int,
+	logger *slog.Logger,
+) *SpinnerHandler {
+	uiHandler := ui.NewUIHandler(logger)
 	spinner := &SpinnerHandler{
+		uiHandler: uiHandler,
 		movieData: movieDataHandler,
 		logger:    logger,
 	}
 
-	spinner.Init(
+	spinner.initDrawHandler(
 		float32(screenWidth)/2,
 		float32(screenHeight)/2,
 		float32(screenWidth)/2,
@@ -49,9 +57,9 @@ func NewSpinner(movieDataHandler *data.MovieDataHandler, screenWidth, screenHeig
 	return spinner
 }
 
-func (s *SpinnerHandler) Init(centreX, centreY, radiusX, radiusY float32) {
+func (s *SpinnerHandler) initDrawHandler(centreX, centreY, radiusX, radiusY float32) {
+	// TODO: rethink role of this method
 	movies := s.movieData.GetMovieList()
-	movies = movies[:7]
 	sliceAngle := render.GetSliceAngle(len(movies))
 
 	// Initialise the wheel with 0'd out animation properties
@@ -114,14 +122,15 @@ func (s *SpinnerHandler) updateWheelState() {
 }
 
 func (s *SpinnerHandler) Update() {
+	s.uiHandler.Update()
+
 	if s.wheel.Slices == nil || !s.wheel.IsSpinning {
 		return
 	}
-
 	s.updateWheelState()
 }
 
 func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
-
 	s.drawHandler.Draw(screen)
+	s.uiHandler.Draw(screen)
 }

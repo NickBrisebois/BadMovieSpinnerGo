@@ -78,6 +78,8 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle(winTitle)
+	ebiten.SetScreenClearedEveryFrame(true)
+	ebiten.SetVsyncEnabled(true)
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
