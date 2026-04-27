@@ -28,6 +28,7 @@ var (
 )
 
 type SpinnerHandler struct {
+	gameScreen  *ebiten.Image
 	drawHandler *render.DrawHandler
 	uiHandler   *ui.UIHandler
 	movieData   *data.MovieDataHandler
@@ -40,7 +41,7 @@ func NewSpinner(
 	screenWidth, screenHeight int,
 	logger *slog.Logger,
 ) *SpinnerHandler {
-	uiHandler := ui.NewUIHandler(logger)
+	uiHandler := ui.NewUIHandler(screenWidth, screenHeight, logger)
 	spinner := &SpinnerHandler{
 		uiHandler: uiHandler,
 		movieData: movieDataHandler,
@@ -48,9 +49,10 @@ func NewSpinner(
 	}
 
 	spinner.initDrawHandler(
+		// TODO: change centres to account for UI elements
 		float32(screenWidth)/2,
 		float32(screenHeight)/2,
-		float32(screenWidth)/2,
+		float32(screenHeight)/2,
 		float32(screenHeight)/2,
 	)
 
@@ -66,13 +68,13 @@ func (s *SpinnerHandler) initDrawHandler(centreX, centreY, radiusX, radiusY floa
 	wheelDrawProperties := &data.WheelDrawProperties{
 		SliceAngle:          sliceAngle,
 		Rotation:            0,
-		AngularVelocity:     0.01,
-		AngularAcceleration: 0.01,
-		MaxVelocity:         0.01,
+		AngularVelocity:     0.5,
+		AngularAcceleration: 0.02,
+		MaxVelocity:         0.5,
 	}
 
 	s.wheel = &data.Wheel{
-		IsSpinning:     true,
+		IsSpinning:     false,
 		DrawProperties: wheelDrawProperties,
 		Slices:         s.genSlices(sliceAngle, movies),
 	}

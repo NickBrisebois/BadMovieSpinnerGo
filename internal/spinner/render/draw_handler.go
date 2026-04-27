@@ -11,12 +11,12 @@ import (
 )
 
 type DrawHandler struct {
-	Slices     *[]data.Slice
-	SliceAngle float32
-	CentreX    float32
-	CentreY    float32
-	RadiusX    float32
-	RadiusY    float32
+	slices     *[]data.Slice
+	sliceAngle float32
+	centreX    float32
+	centreY    float32
+	radiusX    float32
+	radiusY    float32
 
 	maskRenderTarget  *ebiten.Image
 	sliceRenderTarget *ebiten.Image
@@ -31,12 +31,12 @@ func NewDrawHandler(
 	sliceAngle, centreX, centreY, radiusX, radiusY float32,
 ) *DrawHandler {
 	return &DrawHandler{
-		Slices:            slices,
-		SliceAngle:        sliceAngle,
-		CentreX:           centreX,
-		CentreY:           centreY,
-		RadiusX:           radiusX,
-		RadiusY:           radiusY,
+		slices:            slices,
+		sliceAngle:        sliceAngle,
+		centreX:           centreX,
+		centreY:           centreY,
+		radiusX:           radiusX,
+		radiusY:           radiusY,
 		maskRenderTarget:  nil,
 		sliceRenderTarget: nil,
 	}
@@ -67,17 +67,17 @@ func (s *DrawHandler) getSlicePath(
 	path := vector.Path{}
 
 	// move to the centre of the spinner wheel
-	path.MoveTo(s.CentreX, s.CentreY)
+	path.MoveTo(s.centreX, s.centreY)
 
 	// given the start angle and the circle properties, get the outer corner coords
-	ePointX, ePointY := GetEllipsePoint(s.CentreX, s.CentreY, s.RadiusX, s.RadiusY, slice.DrawProperties.StartAngle)
+	ePointX, ePointY := GetEllipsePoint(s.centreX, s.centreY, s.radiusX, s.radiusY, slice.DrawProperties.StartAngle)
 	path.LineTo(ePointX, ePointY)
 
 	// draw a fancy arc to the slice's other outer corner
-	addOuterArc(&path, s.CentreX, s.CentreY, s.RadiusX, s.RadiusY, slice.DrawProperties.StartAngle, slice.DrawProperties.EndAngle)
+	addOuterArc(&path, s.centreX, s.centreY, s.radiusX, s.radiusY, slice.DrawProperties.StartAngle, slice.DrawProperties.EndAngle)
 
 	// back to the middle again
-	path.LineTo(s.CentreX, s.CentreY)
+	path.LineTo(s.centreX, s.centreY)
 	path.Close()
 	return &path
 }
@@ -88,8 +88,8 @@ func (s *DrawHandler) getPosterScale(slice *data.Slice) float64 {
 	initialWidth := float64(poster.Bounds().Dx())
 	initialHeight := float64(poster.Bounds().Dy())
 
-	targetWidth := float64(s.RadiusX * 2)
-	targetHeight := float64(s.RadiusY * 2)
+	targetWidth := float64(s.radiusX * 2)
+	targetHeight := float64(s.radiusY * 2)
 
 	return math.Max(targetWidth/initialWidth, targetHeight/initialHeight)
 }
@@ -134,8 +134,8 @@ func (s *DrawHandler) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255})
 	s.EnsureRenderTargets(screen.Bounds().Dx(), screen.Bounds().Dy())
 
-	for i := range *s.Slices {
-		slice := &(*s.Slices)[i]
+	for i := range *s.slices {
+		slice := &(*s.slices)[i]
 		if slice.DrawProperties == nil {
 			return
 		}

@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/widgets"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets"
 	"log/slog"
 
 	"github.com/ebitenui/ebitenui"
@@ -11,42 +11,74 @@ import (
 )
 
 type UIHandler struct {
-	ui            *ebitenui.UI
-	rootContainer *widget.Container
-	logger        *slog.Logger
+	ui               *ebitenui.UI
+	screenWidth      int
+	screenHeight     int
+	rootContainer    *widget.Container
+	contentContainer *widget.Container
+	toolbar          *swidgets.Toolbar
+	widgets          []swidgets.SWidgetHandler
+	logger           *slog.Logger
 }
 
-func NewUIHandler(logger *slog.Logger) *UIHandler {
-	// create the primary UI container
+func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler {
+	// all widgets live inside the root container
 	rootContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(1),
-			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
-			widget.GridLayoutOpts.Padding(&widget.Insets{
-				Top:    20,
-				Bottom: 20,
-			}),
-			widget.GridLayoutOpts.Spacing(0, 20),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(0),
 		)),
 	)
+
+	// toolbar gets its own fancy container above the main content
+	toolbar := swidgets.NewToolbar(35, colornames.Whitesmoke)
+
+	// create the main content container
+	contentContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
+		)),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.MinSize(screenWidth, screenHeight-toolbar.Height),
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionStart,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
+				StretchHorizontal:  true,
+			}),
+		),
+	)
+
+	rootContainer.AddChild(toolbar.GetContainer(), contentContainer)
 	ui := ebitenui.UI{Container: rootContainer}
 
 	// use primary UI to init the handler to return
 	handler := UIHandler{
-		ui:            &ui,
-		rootContainer: rootContainer,
-		logger:        logger,
+		ui:               &ui,
+		screenWidth:      screenWidth,
+		screenHeight:     screenHeight,
+		rootContainer:    rootContainer,
+		contentContainer: contentContainer,
+		toolbar:          toolbar,
+		logger:           logger,
 	}
 
-	// but then init the various widgets
-	handler.addSidebar()
+	sidebar := swidgets.NewSidebar(screenWidth, 20, colornames.Aquamarine)
+	spinnerBox := swidgets.NewSpinnerBox(colornames.Blanchedalmond)
 
+	// but then init the various widgets
+	handler.addUIWidgets(sidebar, spinnerBox)
 	return &handler
 }
 
-func (u *UIHandler) addSidebar() {
-	sidebar := widgets.NewSidebar(50, colornames.Gainsboro)
-	u.rootContainer.AddChild(sidebar.GetContainer())
+func (u *UIHandler) addUIWidgets(newWidgets ...swidgets.SWidgetHandler) {
+	for _, w := range newWidgets {
+		u.contentContainer.AddChild(w.GetContainer())
+		u.widgets = append(u.widgets, w)
+	}
+}
+
+func (u *UIHandler) GetSpinnerPosition(screenWidth, screenHeight int) float32 {
+	return 0
 }
 
 func (u *UIHandler) Update() error {

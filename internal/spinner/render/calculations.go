@@ -34,9 +34,11 @@ func GetSliceEndAngle(step int, sliceAngle float32) float32 {
 }
 
 func UpdateAngularVelocityFromAcceleration(angularVelocity *float32, angularAcceleration float32, maxVelocity float32) {
-	if *angularVelocity < maxVelocity {
-		*angularVelocity += angularAcceleration * GetDeltaTime()
+	if *angularVelocity >= maxVelocity {
+		*angularVelocity = maxVelocity
+		return
 	}
+	*angularVelocity += angularAcceleration * GetDeltaTime()
 }
 
 func UpdateRotationFromAngularVelocity(rotation *float32, angularVelocity float32) {

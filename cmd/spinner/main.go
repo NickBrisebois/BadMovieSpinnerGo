@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	screenWidth  = 600
+	screenWidth  = 1200
 	screenHeight = 600
 
 	winTitle = "Bad Movie Spinner"
