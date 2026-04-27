@@ -2,6 +2,7 @@ package ui
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets"
+	"image"
 	"log/slog"
 
 	"github.com/ebitenui/ebitenui"
@@ -11,13 +12,16 @@ import (
 )
 
 type UIHandler struct {
-	ui               *ebitenui.UI
-	screenWidth      int
-	screenHeight     int
-	rootContainer    *widget.Container
+	ui           *ebitenui.UI
+	screenWidth  int
+	screenHeight int
+	// rootContainer contains *everything*
+	rootContainer *widget.Container
+	// contentContainer holds the main content under the toolbar
 	contentContainer *widget.Container
+	spinnerBox       *swidgets.SpinnerBox
+	sidebar          *swidgets.Sidebar
 	toolbar          *swidgets.Toolbar
-	widgets          []swidgets.SWidgetHandler
 	logger           *slog.Logger
 }
 
@@ -35,15 +39,18 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 
 	// create the main content container
 	contentContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Spacing(0, 0),
+			widget.GridLayoutOpts.Stretch(
+				[]bool{false, true},
+				[]bool{true},
+			),
 		)),
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.MinSize(screenWidth, screenHeight-toolbar.Height),
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-				HorizontalPosition: widget.AnchorLayoutPositionStart,
-				VerticalPosition:   widget.AnchorLayoutPositionEnd,
-				StretchHorizontal:  true,
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
 			}),
 		),
 	)
@@ -59,26 +66,18 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		rootContainer:    rootContainer,
 		contentContainer: contentContainer,
 		toolbar:          toolbar,
+		sidebar:          swidgets.NewSidebar(screenWidth, 20, colornames.Aquamarine),
+		spinnerBox:       swidgets.NewSpinnerBox(colornames.Blanchedalmond),
 		logger:           logger,
 	}
+	contentContainer.AddChild(handler.sidebar.GetContainer())
+	contentContainer.AddChild(handler.spinnerBox.GetContainer())
 
-	sidebar := swidgets.NewSidebar(screenWidth, 20, colornames.Aquamarine)
-	spinnerBox := swidgets.NewSpinnerBox(colornames.Blanchedalmond)
-
-	// but then init the various widgets
-	handler.addUIWidgets(sidebar, spinnerBox)
 	return &handler
 }
 
-func (u *UIHandler) addUIWidgets(newWidgets ...swidgets.SWidgetHandler) {
-	for _, w := range newWidgets {
-		u.contentContainer.AddChild(w.GetContainer())
-		u.widgets = append(u.widgets, w)
-	}
-}
-
-func (u *UIHandler) GetSpinnerPosition(screenWidth, screenHeight int) float32 {
-	return 0
+func (u *UIHandler) GetSpinnerBoxRect() image.Rectangle {
+	return u.spinnerBox.GetContainer().GetWidget().Rect
 }
 
 func (u *UIHandler) Update() error {

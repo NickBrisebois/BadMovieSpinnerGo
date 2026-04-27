@@ -28,7 +28,7 @@ var (
 )
 
 type SpinnerHandler struct {
-	gameScreen  *ebiten.Image
+	initialised bool
 	drawHandler *render.DrawHandler
 	uiHandler   *ui.UIHandler
 	movieData   *data.MovieDataHandler
@@ -41,26 +41,17 @@ func NewSpinner(
 	screenWidth, screenHeight int,
 	logger *slog.Logger,
 ) *SpinnerHandler {
-	uiHandler := ui.NewUIHandler(screenWidth, screenHeight, logger)
 	spinner := &SpinnerHandler{
-		uiHandler: uiHandler,
-		movieData: movieDataHandler,
-		logger:    logger,
+		uiHandler:   ui.NewUIHandler(screenWidth, screenHeight, logger),
+		movieData:   movieDataHandler,
+		drawHandler: nil, // dependent on UI so initialised during first draw
+		logger:      logger,
 	}
-
-	spinner.initDrawHandler(
-		// TODO: change centres to account for UI elements
-		float32(screenWidth)/2,
-		float32(screenHeight)/2,
-		float32(screenHeight)/2,
-		float32(screenHeight)/2,
-	)
 
 	return spinner
 }
 
-func (s *SpinnerHandler) initDrawHandler(centreX, centreY, radiusX, radiusY float32) {
-	// TODO: rethink role of this method
+func (s *SpinnerHandler) initDrawHandler() {
 	movies := s.movieData.GetMovieList()
 	sliceAngle := render.GetSliceAngle(len(movies))
 
@@ -74,11 +65,11 @@ func (s *SpinnerHandler) initDrawHandler(centreX, centreY, radiusX, radiusY floa
 	}
 
 	s.wheel = &data.Wheel{
-		IsSpinning:     false,
+		IsSpinning:     true,
 		DrawProperties: wheelDrawProperties,
 		Slices:         s.genSlices(sliceAngle, movies),
 	}
-	s.drawHandler = render.NewDrawHandler(s.wheel.Slices, sliceAngle, centreX, centreY, radiusX, radiusY)
+	s.drawHandler = render.NewDrawHandler(s.wheel.Slices, sliceAngle)
 }
 
 func (s *SpinnerHandler) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]data.Slice {
@@ -126,13 +117,27 @@ func (s *SpinnerHandler) updateWheelState() {
 func (s *SpinnerHandler) Update() {
 	s.uiHandler.Update()
 
-	if s.wheel.Slices == nil || !s.wheel.IsSpinning {
+	if !s.initialised || s.wheel.Slices == nil || !s.wheel.IsSpinning {
 		return
 	}
 	s.updateWheelState()
 }
 
 func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
-	s.drawHandler.Draw(screen)
+	spinnerRect := s.uiHandler.GetSpinnerBoxRect()
+	if !s.initialised && !spinnerRect.Empty() {
+		// The spinner has to be initialised after the first UI draw since
+		// the spinner box widget's dimensions are only calculated during that
+		s.initDrawHandler()
+		s.initialised = true
+	}
+
+	if s.initialised {
+		spinnerScreen := screen.SubImage(spinnerRect).(*ebiten.Image)
+		s.drawHandler.Draw(spinnerScreen, spinnerRect)
+	}
+
 	s.uiHandler.Draw(screen)
+	// s.drawHandler.Draw(s.gameScreen)
+	// screen.DrawImage(s.gameScreen, nil)
 }
