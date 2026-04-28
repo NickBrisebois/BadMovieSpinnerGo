@@ -28,9 +28,13 @@ type UIHandler struct {
 func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler {
 	// all widgets live inside the root container
 	rootContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Spacing(0),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Spacing(0, 0),
+			widget.GridLayoutOpts.Stretch(
+				[]bool{true},
+				[]bool{false, true},
+			),
 		)),
 	)
 
@@ -48,10 +52,7 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 			),
 		)),
 		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.MinSize(screenWidth, screenHeight-toolbar.Height),
-			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-				Stretch: true,
-			}),
+			widget.WidgetOpts.MinSize(screenWidth, 0),
 		),
 	)
 

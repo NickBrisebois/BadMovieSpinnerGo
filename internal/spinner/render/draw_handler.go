@@ -119,19 +119,17 @@ func (s *DrawHandler) drawSlice(screen *ebiten.Image, spinnerRect image.Rectangl
 	)
 	s.sliceRenderTarget.DrawImage(slice.DrawProperties.SliceImage, drawImageOptions)
 
-	// Draw poster RT to mask RT
-	maskCopyOptions := &ebiten.DrawImageOptions{
-		Blend: ebiten.BlendDestinationIn,
-	}
+	// Draw prepared mask to the render target
+	maskCopyOptions := &ebiten.DrawImageOptions{Blend: ebiten.BlendDestinationIn}
 	s.sliceRenderTarget.DrawImage(s.maskRenderTarget, maskCopyOptions)
 
-	// Draw prepared slice to screen
+	// Draw rendering to the screen
 	screenDrawOptions := &ebiten.DrawImageOptions{}
 	screenDrawOptions.GeoM.Translate(
 		float64(spinnerRect.Min.X),
 		float64(spinnerRect.Min.Y),
 	)
-	screen.DrawImage(s.sliceRenderTarget, nil)
+	screen.DrawImage(s.sliceRenderTarget, screenDrawOptions)
 }
 
 func (s *DrawHandler) EnsureRenderTargets(screenW, screenH int) {
@@ -145,8 +143,8 @@ func (s *DrawHandler) Draw(screen *ebiten.Image, spinnerRect image.Rectangle) {
 	width := spinnerRect.Dx()
 	height := spinnerRect.Dy()
 	radius := float32(min(float64(width), float64(height))) / 2
-	centreX := float32(spinnerRect.Min.X + width/2)
-	centreY := float32(spinnerRect.Min.Y + height/2)
+	centreX := float32(width / 2)
+	centreY := float32(height / 2)
 	s.EnsureRenderTargets(width, height)
 
 	for i := range *s.slices {
