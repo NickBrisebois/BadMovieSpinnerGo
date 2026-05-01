@@ -1,6 +1,7 @@
 package ui
 
 import (
+	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets"
 	"image"
 	"log/slog"
@@ -8,7 +9,11 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/colornames"
+)
+
+const (
+	headerWidgetHeightPercent = 10
+	sidebarWidgetWidthPercent = 35
 )
 
 type UIHandler struct {
@@ -21,7 +26,7 @@ type UIHandler struct {
 	contentContainer *widget.Container
 	spinnerBox       *swidgets.SpinnerBox
 	sidebar          *swidgets.Sidebar
-	toolbar          *swidgets.Toolbar
+	toolbar          *swidgets.Header
 	logger           *slog.Logger
 }
 
@@ -38,8 +43,8 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		)),
 	)
 
-	// toolbar gets its own fancy container above the main content
-	toolbar := swidgets.NewToolbar(35, colornames.Whitesmoke)
+	// header gets its own fancy container above the main content
+	header := swidgets.NewHeader(screenWidth, headerWidgetHeightPercent, res.ThemeHeaderBGColour)
 
 	// create the main content container
 	contentContainer := widget.NewContainer(
@@ -56,7 +61,7 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		),
 	)
 
-	rootContainer.AddChild(toolbar.GetContainer(), contentContainer)
+	rootContainer.AddChild(header.GetContainer(), contentContainer)
 	ui := ebitenui.UI{Container: rootContainer}
 
 	// use primary UI to init the handler to return
@@ -66,9 +71,9 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		screenHeight:     screenHeight,
 		rootContainer:    rootContainer,
 		contentContainer: contentContainer,
-		toolbar:          toolbar,
-		sidebar:          swidgets.NewSidebar(screenWidth, 20, colornames.Aquamarine),
-		spinnerBox:       swidgets.NewSpinnerBox(colornames.Blanchedalmond),
+		toolbar:          header,
+		sidebar:          swidgets.NewSidebar(screenWidth, sidebarWidgetWidthPercent, res.ThemeSidebarBGColour),
+		spinnerBox:       swidgets.NewSpinnerBox(),
 		logger:           logger,
 	}
 	contentContainer.AddChild(handler.sidebar.GetContainer())
@@ -86,6 +91,10 @@ func (u *UIHandler) Update() error {
 	return nil
 }
 
-func (u *UIHandler) Draw(screen *ebiten.Image) {
+func (u *UIHandler) DrawUI(screen *ebiten.Image) {
 	u.ui.Draw(screen)
+}
+
+func (u *UIHandler) DrawSpinnerOverlay(screen *ebiten.Image) {
+
 }

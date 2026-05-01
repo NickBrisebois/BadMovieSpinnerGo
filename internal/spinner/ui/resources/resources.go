@@ -1,8 +1,12 @@
-package ui
+package res
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/assets"
 	"image/color"
+	"log"
 	"strconv"
+
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 const (
@@ -13,6 +17,11 @@ const (
 	colourLightCoral    = "e56b6f"
 	colourLightBronze   = "eaac8b"
 	colourWhite         = "f4e9cd"
+
+	fontFaceRegular      = "fonts/NotoSans-Regular.ttf"
+	fontFaceBold         = "fonts/NotoSans-Bold.ttf"
+	fontFaceIconsRegular = "fonts/FontAwesome7Free-Regular-400.otf"
+	fontFaceIconsSolid   = "fonts/FontAwesome7Free-Solid-900.otf"
 )
 
 var (
@@ -23,7 +32,31 @@ var (
 	ThemeBodyTextColour     = hexToColour(colourWhite)
 	ThemeHeaderTextColour   = hexToColour(colourWhite)
 	ThemeHeaderAccentColour = hexToColour(colourLightBronze)
+
+	ThemeFontFaceRegular      = loadFont(fontFaceRegular, 14)
+	ThemeFontFaceBold         = loadFont(fontFaceBold, 16)
+	ThemeFontFaceIconsRegular = loadFont(fontFaceIconsRegular, 16)
+	ThemeFontFaceIconsSolid   = loadFont(fontFaceIconsSolid, 16)
 )
+
+func loadFont(fontPath string, fontSize float64) text.Face {
+	fontFile, err := assets.Fonts.Open(fontPath)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	faceSource, err := text.NewGoTextFaceSource(fontFile)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	return &text.GoTextFace{
+		Source: faceSource,
+		Size:   fontSize,
+	}
+}
 
 func hexToColour(h string) color.Color {
 	// Convert hex colour value to color struct

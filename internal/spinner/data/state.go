@@ -2,7 +2,6 @@ package data
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -25,7 +24,6 @@ type Slice struct {
 	ID             int
 	Movie          models.MovieMeta
 	Label          string
-	FillColour     color.RGBA
 	DrawProperties *SliceDrawProperties
 }
 
@@ -36,12 +34,11 @@ type SliceDrawProperties struct {
 	SliceImage *ebiten.Image
 }
 
-func NewSlice(id int, step int, startAngle float32, endAngle float32, movie models.MovieMeta, fillColour color.RGBA, sliceImage *ebiten.Image) *Slice {
+func NewSlice(id int, step int, startAngle float32, endAngle float32, movie models.MovieMeta, sliceImage *ebiten.Image) *Slice {
 	return &Slice{
 		ID:             id,
 		Movie:          movie,
 		Label:          movie.Title,
-		FillColour:     fillColour,
 		DrawProperties: NewSliceDrawProperties(step, startAngle, endAngle, sliceImage),
 	}
 }

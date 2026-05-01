@@ -1,8 +1,6 @@
 package swidgets
 
 import (
-	"image/color"
-
 	"github.com/ebitenui/ebitenui/widget"
 )
 
@@ -10,7 +8,7 @@ type SpinnerBox struct {
 	container *widget.Container
 }
 
-func NewSpinnerBox(bgColour color.Color) *SpinnerBox {
+func NewSpinnerBox() *SpinnerBox {
 	spinnerRootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(

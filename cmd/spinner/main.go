@@ -17,6 +17,7 @@ const (
 	screenHeight = 600
 
 	winTitle = "Bad Movie Spinner"
+	binName  = "moviespinner"
 )
 
 // SpinnerGame is the main ebitengine "game" object

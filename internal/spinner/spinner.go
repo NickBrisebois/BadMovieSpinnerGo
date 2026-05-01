@@ -13,18 +13,6 @@ import (
 
 var (
 	outlineColour = color.RGBA{0, 0, 0, 255}
-	sliceColours  = [...]color.RGBA{
-		{242, 145, 153, 255},
-		{107, 167, 191, 255},
-		{242, 242, 56, 255},
-		{242, 90, 56, 255},
-		{64, 1, 1, 255},
-		{42, 45, 53, 255},
-		{7, 67, 91, 255},
-		{42, 242, 56, 255},
-		{42, 90, 56, 255},
-		{4, 1, 1, 255},
-	}
 )
 
 type SpinnerHandler struct {
@@ -87,7 +75,6 @@ func (s *SpinnerHandler) genSlices(sliceAngle float32, movies []models.MovieMeta
 			render.GetSliceStartAngle(i, sliceAngle),
 			render.GetSliceEndAngle(i, sliceAngle),
 			movie,
-			sliceColours[i%len(sliceColours)],
 			moviePoster,
 		))
 	}
@@ -132,12 +119,11 @@ func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 		s.initialised = true
 	}
 
+	s.uiHandler.DrawUI(screen)
+
 	if s.initialised {
+		// The actual "game" or spinner is drawn to a subimage that's sized to the container provided by the UI handler
 		spinnerScreen := screen.SubImage(spinnerRect).(*ebiten.Image)
 		s.drawHandler.Draw(spinnerScreen, spinnerRect)
 	}
-
-	s.uiHandler.Draw(screen)
-	// s.drawHandler.Draw(s.gameScreen)
-	// screen.DrawImage(s.gameScreen, nil)
 }
