@@ -39,6 +39,7 @@ notes.md
 tmp
 test_image.png
 __debug*
+*.tar.gz
 
 # .cache is the default image cache directory
 .cache

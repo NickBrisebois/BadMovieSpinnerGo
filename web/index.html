@@ -12,10 +12,16 @@
 
         <div id="spinner-container"></div>
 
-        <script src="wasm_exec.js"></script>
+        <script>
+            window.appConfig = {
+                SERVER_HOST: "badmovies.api.acid1.xyz",
+                SERVER_PORT: "443",
+            };
+        </script>
+        <script src="static/wasm_exec.js"></script>
         <script>
             const go = new Go();
-            WebAssembly.instantiateStreaming(fetch("bad_movie_spinner.wasm"), go.importObject).then((result) => {
+            WebAssembly.instantiateStreaming(fetch("static/main.wasm"), go.importObject).then((result) => {
                 go.run(result.instance);
             });
         </script>

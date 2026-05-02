@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -62,7 +61,7 @@ func parseEnvsIntoConfig(conf reflect.Value) error {
 		envVarName := getStructTagValue(&confPropertyTags, "env")
 		defaultValue := getStructTagValue(&confPropertyTags, "default")
 
-		raw, ok := os.LookupEnv(envVarName)
+		raw, ok := getEnvValue(envVarName)
 		if !ok || raw == "" {
 			if defaultValue != "" {
 				raw = defaultValue

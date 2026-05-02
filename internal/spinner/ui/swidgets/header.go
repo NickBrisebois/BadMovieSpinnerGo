@@ -36,7 +36,7 @@ func NewHeader(screenHeight, heightPercent int, bgColour color.Color) *Header {
 
 	toolbarContainer.AddChild(
 		widget.NewText(
-			widget.TextOpts.Text("Bad Movie Spinner", &res.ThemeFontFaceBold, res.ThemeHeaderTextColour),
+			widget.TextOpts.Text(res.StrHeaderTitle, &res.ThemeFontFaceBold, res.ThemeHeaderTextColour),
 		),
 	)
 

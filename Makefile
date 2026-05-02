@@ -3,7 +3,7 @@ BIN_NAME=badmoviespinner
 API_BIN=./bin/$(BIN_NAME)-api
 
 APP_WASM_OUT=./web/static/main.wasm
-APP_WASM_EXEC=./web/static/APP_WASM_exec.js
+APP_WASM_EXEC=./web/static/wasm_exec.js
 APP_LINUX_BIN = ./bin/$(BIN_NAME)-spinner
 
 APP_WASM_BUILD_FLAGS="-tags=js,wasm"
@@ -30,7 +30,7 @@ build-linux:  ## Build the spinner as a Linux binary
 
 .PHONY: copy-wasm-exec
 copy-wasm-exec:  ## Copy the wasm_exec.js dependency into the html app build directory
-	cp $(GOROOT)/misc/wasm/APP_WASM_exec.js $(APP_WASM_EXEC)
+	cp $(GOROOT)/lib/wasm/wasm_exec.js $(APP_WASM_EXEC)
 
 .PHONY: build-wasm
 build-wasm: copy-wasm-exec  ## Build the spinner WASM binary
