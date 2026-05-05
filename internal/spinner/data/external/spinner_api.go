@@ -25,6 +25,7 @@ func NewSpinnerAPI(baseURL string, logger *slog.Logger) *SpinnerAPI {
 
 func (s *SpinnerAPI) httpReq(method, path string, body io.Reader) (*http.Response, error) {
 	url := s.baseURL + path
+	s.logger.Debug("httpReq", "method", method, "url", url)
 
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {

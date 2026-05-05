@@ -25,7 +25,9 @@ func main() {
 	slog.SetDefault(logger)
 
 	apiConfig := &api.Config{}
-	err := config.LoadConfig(apiConfig)
+	err := config.LoadConfig(apiConfig, &config.ConfigOptions{
+		Logger: logger,
+	})
 	if err != nil {
 		logger.Error("failed to load config", "err", err)
 		os.Exit(1)

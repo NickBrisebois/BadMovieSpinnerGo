@@ -5,14 +5,9 @@ import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
-	"image/color"
 	"log/slog"
 
 	"github.com/hajimehoshi/ebiten/v2"
-)
-
-var (
-	outlineColour = color.RGBA{0, 0, 0, 255}
 )
 
 type SpinnerHandler struct {

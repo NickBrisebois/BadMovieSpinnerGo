@@ -7,12 +7,12 @@ import (
 )
 
 type SpinnerConfig struct {
-	ServerHost string `env:"SERVER_HOST" default:"http://localhost"`
-	ServerPort string `env:"SERVER_PORT" default:"8080"`
+	APIHost string `env:"API_HOST" default:"http://localhost"`
+	APIPort string `env:"API_PORT" default:"8080"`
 }
 
 func (c *SpinnerConfig) ServerURL() (string, error) {
-	urlStr := fmt.Sprintf("%s:%s", c.ServerHost, c.ServerPort)
+	urlStr := fmt.Sprintf("%s:%s", c.APIHost, c.APIPort)
 	if !strings.HasPrefix(urlStr, "http") {
 		urlStr = "http://" + urlStr
 	}

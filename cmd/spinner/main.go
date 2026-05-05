@@ -20,6 +20,18 @@ const (
 	binName  = "moviespinner"
 )
 
+// Config values injected during build via `-ldflags` and then mapped
+// to allow for string-based lookup to match native-build ENV var lookups
+// Note: if these aren't passed during compilation, they're grabbed from environment variables
+var (
+	APIHost           string
+	APIPort           string
+	LookupOverrideMap = map[string]*string{
+		"API_HOST": &APIHost,
+		"API_PORT": &APIPort,
+	}
+)
+
 // SpinnerGame is the main ebitengine "game" object
 // It implements the functions from the ebitengine.Game interface
 type SpinnerGame struct {
@@ -63,8 +75,13 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
+	logger.Debug("starting spinner", "Backend Host", APIHost, "Backend Port", APIPort)
+
 	spinnerConfig := &spinner.SpinnerConfig{}
-	err := config.LoadConfig(spinnerConfig)
+	err := config.LoadConfig(spinnerConfig, &config.ConfigOptions{
+		EnvOverrideMap: &LookupOverrideMap,
+		Logger:         logger,
+	})
 	if err != nil {
 		logger.Error("failed to load spinner config", "error", err)
 		return

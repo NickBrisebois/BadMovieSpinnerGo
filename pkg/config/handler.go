@@ -2,14 +2,38 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
-func LoadConfig(conf any) error {
+type ConfigOptions struct {
+	// Optional map of variables to use instead of system environment (Mainly for WASM builds)
+	// Map is organised with the key being the environment variable and value being a pointer to
+	// string variables injected with `ldflags` on compilation
+	EnvOverrideMap *map[string]*string
+
+	Logger *slog.Logger
+}
+
+func LoadConfig(conf any, options *ConfigOptions) error {
+	var logger *slog.Logger
+	if options != nil {
+		if options.Logger != nil {
+			logger = options.Logger
+		} else {
+			logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		}
+
+		if options.EnvOverrideMap != nil {
+			logger.Debug("loading config from override map")
+		}
+	}
+
 	valOfConfig := reflect.ValueOf(conf)
-	return parseEnvsIntoConfig(valOfConfig.Elem())
+	return parseEnvsIntoConfig(valOfConfig.Elem(), logger, options)
 }
 
 func parseValue(confProperty *reflect.Value, confKind reflect.Kind, rawEnvVal string, envVarName string) error {
@@ -41,9 +65,20 @@ func getStructTagValue(structField *reflect.StructField, key string) string {
 	return strings.TrimSpace(parts[0])
 }
 
+func getEnvValue(keyName string, options *ConfigOptions) (string, bool) {
+	if options.EnvOverrideMap != nil {
+		if val, ok := (*options.EnvOverrideMap)[keyName]; ok {
+			return *val, true
+		}
+		return "", false
+	}
+
+	return os.LookupEnv(keyName)
+}
+
 // parseEnvsIntoConfig recursively digs into given struct type and fills in properties with env values
 // keyed by the tag provided in the struct declaration
-func parseEnvsIntoConfig(conf reflect.Value) error {
+func parseEnvsIntoConfig(conf reflect.Value, logger *slog.Logger, options *ConfigOptions) error {
 	confType := conf.Type()
 
 	for i := 0; i < conf.NumField(); i++ {
@@ -51,7 +86,8 @@ func parseEnvsIntoConfig(conf reflect.Value) error {
 		confPropertyTags := confType.Field(i)
 
 		if confProperty.Kind() == reflect.Struct {
-			if err := parseEnvsIntoConfig(confProperty); err != nil {
+			logger.Debug("reading sub-config struct", "field", confPropertyTags.Name)
+			if err := parseEnvsIntoConfig(confProperty, logger, options); err != nil {
 				return err
 			}
 
@@ -61,11 +97,13 @@ func parseEnvsIntoConfig(conf reflect.Value) error {
 		envVarName := getStructTagValue(&confPropertyTags, "env")
 		defaultValue := getStructTagValue(&confPropertyTags, "default")
 
-		raw, ok := getEnvValue(envVarName)
+		raw, ok := getEnvValue(envVarName, options)
 		if !ok || raw == "" {
 			if defaultValue != "" {
+				logger.Debug("using default value", "field", confPropertyTags.Name, "default", defaultValue)
 				raw = defaultValue
 			} else {
+				logger.Warn("missing required config value", "field", confPropertyTags.Name, "env", envVarName)
 				return fmt.Errorf("missing env var %q", envVarName)
 			}
 		}

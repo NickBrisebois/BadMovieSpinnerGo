@@ -1,15 +1,20 @@
-BIN_NAME=badmoviespinner
+# GLOBAL BUILD VARS
+BIN_NAME_PREFIX?=spinner
+GOROOT=$(shell go env GOROOT)
 
-API_BIN=./bin/$(BIN_NAME)-api
+# API BUILD VARS
+API_BIN_OUT=./bin/$(BIN_NAME_PREFIX)-api
 
+# SPINNER BUILD VARS
 APP_WASM_OUT=./web/static/main.wasm
 APP_WASM_EXEC=./web/static/wasm_exec.js
-APP_LINUX_BIN = ./bin/$(BIN_NAME)-spinner
-
-APP_WASM_BUILD_FLAGS="-tags=js,wasm"
+APP_LINUX_BIN_OUT = ./bin/$(BIN_NAME_PREFIX)-app
+# APP_API_* variables are injected into the WASM spinner binary to specify where the API is
+APP_API_HOST?=https://badmovie2.api.acid1.xyz
+APP_API_PORT?=443
+APP_WASM_BUILD_FLAGS=-tags="js wasm" \
+					 -ldflags="-X 'main.APIHost=$(APP_API_HOST)' -X 'main.APIPort=$(APP_API_PORT)'"
 APP_LINUX_BUILD_FLAGS="-tags=native"
-
-GOROOT=$(shell go env GOROOT)
 
 .PHONY: help
 help:
@@ -22,11 +27,11 @@ all: build-wasm
 
 .PHONY: build-api
 build-api:  ## Build the spinner's backend API
-	go build -o $(API_BIN) ./cmd/api
+	go build -o $(API_BIN_OUT) ./cmd/api
 
 .PHONY: build-linux
 build-linux:  ## Build the spinner as a Linux binary
-	go build $(APP_LINUX_BUILD_FLAGS) -o $(APP_LINUX_BIN) ./cmd/spinner
+	go build $(APP_LINUX_BUILD_FLAGS) -o $(APP_LINUX_BIN_OUT) ./cmd/spinner
 
 .PHONY: copy-wasm-exec
 copy-wasm-exec:  ## Copy the wasm_exec.js dependency into the html app build directory
@@ -44,10 +49,6 @@ debug: ## Run the spinner with live reload as a linux binary through delve (see 
 run:  ## Run the spinner linux binary with live reload but no debugger
 	go tool air -c .air-spinner.toml -build.entrypoint bin/$(BIN_NAME)-spinner
 
-.PHONY: debug-api
-debug-api: ## Run the spinner API with live reload but no debugger
-	bash scripts/run_dlv.sh api
-
 .PHONY: run-api
 run-api:  ## Run the spinner API with live reload with delve debugger
 	go tool air -c .air-api.toml -build.entrypoint bin/$(BIN_NAME)-api
@@ -57,7 +58,7 @@ gen-docs:  ## Generate API documentation
 	go tool swag init -g cmd/api/main.go
 
 .PHONY: format
-format:
+format:  ## Format codebase
 	go fmt ./...
 	go tool swag fmt
 

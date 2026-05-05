@@ -18,5 +18,6 @@
     "mode": "debug",
     "program": "cmd/spinner/main.go",
     "envFile": ".env",
+    "buildFlags": ["-tags=native", "-ldflags=-X 'main.apiHost=localhost' -X 'main.apiPort=8080'"],
   },
 ]
