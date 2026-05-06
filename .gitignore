@@ -43,3 +43,5 @@ __debug*
 
 # .cache is the default image cache directory
 .cache
+
+scripts/*.nogit.sh

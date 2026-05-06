@@ -26,7 +26,8 @@ func main() {
 
 	apiConfig := &api.Config{}
 	err := config.LoadConfig(apiConfig, &config.ConfigOptions{
-		Logger: logger,
+		Logger:         logger,
+		ParsingOptions: &config.ParsingOptions{SliceDelimiter: ","},
 	})
 	if err != nil {
 		logger.Error("failed to load config", "err", err)

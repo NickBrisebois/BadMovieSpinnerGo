@@ -1,6 +1,7 @@
 package api
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/api/middleware"
 	"NickBrisebois/BadMovieSpinnerGo/internal/api/views"
 	"log/slog"
 	"net/http"
@@ -25,5 +26,6 @@ func NewRouter(config *Config, logger *slog.Logger) (http.Handler, error) {
 	mux.HandleFunc("/sheets/movies", gsMoviesView.GetMovieList)
 	mux.HandleFunc("/sheets/movies/{tmdbID}/poster", gsMoviesView.GetMoviePoster)
 
-	return mux, nil
+	router := middleware.CorsMiddleware(mux, config.Server.AllowedOrigins)
+	return router, nil
 }

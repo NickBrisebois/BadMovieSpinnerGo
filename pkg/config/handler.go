@@ -9,12 +9,24 @@ import (
 	"strings"
 )
 
+// ParsingOptions holds additional configuration for parsing different env values into native types
+type ParsingOptions struct {
+	// Optional delimiter used when parsing strings into slices (e.g. "," for parsing a string of vals separated by ,)
+	// Default: ","
+	SliceDelimiter string
+}
+
 type ConfigOptions struct {
 	// Optional map of variables to use instead of system environment (Mainly for WASM builds)
 	// Map is organised with the key being the environment variable and value being a pointer to
 	// string variables injected with `ldflags` on compilation
 	EnvOverrideMap *map[string]*string
 
+	// Optional parsing options to use when parsing env values into native types
+	ParsingOptions *ParsingOptions
+
+	// Optional logger to use for logging
+	// Default: slog.New(slog.NewTextHandler(os.Stdout, nil))
 	Logger *slog.Logger
 }
 
@@ -36,24 +48,32 @@ func LoadConfig(conf any, options *ConfigOptions) error {
 	return parseEnvsIntoConfig(valOfConfig.Elem(), logger, options)
 }
 
-func parseValue(confProperty *reflect.Value, confKind reflect.Kind, rawEnvVal string, envVarName string) error {
-	switch confProperty.Kind() {
+func parseValue(confProperty *reflect.Value, rawEnvVal string, parsingOptions *ParsingOptions) error {
+	propKind := confProperty.Kind()
+	switch propKind {
 	case reflect.String:
 		confProperty.SetString(rawEnvVal)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		n, err := strconv.ParseInt(rawEnvVal, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid int value for %q: %w", envVarName, err)
+			return fmt.Errorf("invalid int value: %w", err)
 		}
 		confProperty.SetInt(n)
 	case reflect.Bool:
 		b, err := strconv.ParseBool(rawEnvVal)
 		if err != nil {
-			return fmt.Errorf("invalid bool value for %q: %w", envVarName, err)
+			return fmt.Errorf("invalid bool value: %w", err)
 		}
 		confProperty.SetBool(b)
+	case reflect.Slice:
+		delimiter := ","
+		if parsingOptions.SliceDelimiter != "" {
+			delimiter = parsingOptions.SliceDelimiter
+		}
+		splitValues := strings.Split(rawEnvVal, delimiter)
+		confProperty.Set(reflect.ValueOf(splitValues))
 	default:
-		return fmt.Errorf("unsupported kind %v for %q", confKind, envVarName)
+		return fmt.Errorf("unsupported kind")
 	}
 
 	return nil
@@ -84,8 +104,10 @@ func parseEnvsIntoConfig(conf reflect.Value, logger *slog.Logger, options *Confi
 	for i := 0; i < conf.NumField(); i++ {
 		confProperty := conf.Field(i)
 		confPropertyTags := confType.Field(i)
+		confPropertyKind := confProperty.Kind()
 
-		if confProperty.Kind() == reflect.Struct {
+		switch confPropertyKind {
+		case reflect.Struct:
 			logger.Debug("reading sub-config struct", "field", confPropertyTags.Name)
 			if err := parseEnvsIntoConfig(confProperty, logger, options); err != nil {
 				return err
@@ -96,7 +118,6 @@ func parseEnvsIntoConfig(conf reflect.Value, logger *slog.Logger, options *Confi
 
 		envVarName := getStructTagValue(&confPropertyTags, "env")
 		defaultValue := getStructTagValue(&confPropertyTags, "default")
-
 		raw, ok := getEnvValue(envVarName, options)
 		if !ok || raw == "" {
 			if defaultValue != "" {
@@ -108,7 +129,8 @@ func parseEnvsIntoConfig(conf reflect.Value, logger *slog.Logger, options *Confi
 			}
 		}
 
-		if err := parseValue(&confProperty, conf.Kind(), raw, envVarName); err != nil {
+		if err := parseValue(&confProperty, raw, options.ParsingOptions); err != nil {
+			logger.Error("failed to parse env value", "field", confPropertyTags.Name, "env", envVarName, "value", raw, "error", err)
 			return err
 		}
 	}

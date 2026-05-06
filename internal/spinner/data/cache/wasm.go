@@ -1,6 +1,7 @@
 //go:build js && wasm
 
 // WASM-specific implementation of image cache
+// Stores cached images and movie list in browser's localStorage
 // `wasm.go` is only built for WASM targets (-tags=wasm)
 
 package cache
