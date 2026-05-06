@@ -43,8 +43,8 @@ build-api:  ## Build the spinner's backend API
 
 .PHONY: install-api
 install-api:  ## Copy API binary to install target directory
-	mkdir -p $(LINUX_INSTALL_DIR)
-	cp $(API_BIN) $(LINUX_INSTALL_DIR)/$(API_BIN)
+	mkdir -p $(API_INSTALL_DIR)
+	cp $(API_BIN) $(API_INSTALL_DIR)/$(API_BIN)
 
 .PHONY: build-linux
 build-linux:  ## Build the spinner as a Linux binary
