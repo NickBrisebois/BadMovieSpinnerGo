@@ -1,0 +1,7 @@
+bin/
+.air*.toml
+.gitignore
+.cache
+.zed
+.env
+*.md

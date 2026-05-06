@@ -10,7 +10,9 @@ RUN go mod download
 COPY . .
 RUN mkdir -p /opt/spinner
 
-FROM setup AS build-api
+FROM setup
+ENV BIN_NAME_PREFIX=spinner
+
 RUN make build-api
-RUN cp ./bin/badmoviespinner-api /opt/spinner/spinner-api
+RUN make install-api
 CMD ["/opt/spinner/spinner-api"]
