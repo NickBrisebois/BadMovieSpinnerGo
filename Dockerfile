@@ -15,4 +15,4 @@ ENV BIN_NAME_PREFIX=spinner
 
 RUN make build-api
 RUN make install-api
-CMD ["/opt/spinner/spinner-api"]
+CMD ["/opt/spinner/api/spinner-api"]
