@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data"
 )
@@ -14,9 +13,6 @@ import (
 type DrawHandler struct {
 	slices     *[]data.Slice
 	sliceAngle float32
-
-	maskRenderTarget  *ebiten.Image
-	sliceRenderTarget *ebiten.Image
 }
 
 // outerSliceArcSegments defines how many segments to draw for the outer arc connecting the two corners
@@ -28,124 +24,101 @@ func NewDrawHandler(
 	sliceAngle float32,
 ) *DrawHandler {
 	return &DrawHandler{
-		slices:            slices,
-		sliceAngle:        sliceAngle,
-		maskRenderTarget:  nil,
-		sliceRenderTarget: nil,
+		slices:     slices,
+		sliceAngle: sliceAngle,
 	}
 }
 
-// addOuterArc draws an arc connecting the two outer corners in an arc shape
-func addOuterArc(path *vector.Path, centreX, centreY, radiusX, radiusY, start, end float32) {
-	span := end - start
-	if span < 0 {
-		span = -span
+// getEbitenRGBAFromColor converts a color.Color to an ebiten compatible RGBA tuple (useful for ebiten vertices)
+func getEbitenRGBAFromColor(toConvert color.Color) (cr, cg, cb, ca float32) {
+	r, g, b, a := toConvert.RGBA()
+	return float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff
+}
+
+func getVertex(x, y float32, vertexColour color.Color) ebiten.Vertex {
+	r, g, b, a := getEbitenRGBAFromColor(vertexColour)
+	return ebiten.Vertex{
+		DstX:   x,
+		DstY:   y,
+		ColorR: r,
+		ColorG: g,
+		ColorB: b,
+		ColorA: a,
+	}
+}
+
+func addOuterArc(vertices *[]ebiten.Vertex, slice *data.Slice, centreX, centreY, radius float32, numSegments int) {
+	startAngle := slice.DrawProperties.StartAngle
+	endAngle := slice.DrawProperties.EndAngle
+	for j := 0; j <= numSegments; j++ {
+		t := float32(j) / float32(numSegments)
+		angle := startAngle + (endAngle-startAngle)*t
+		x, y := GetEllipsePoint(centreX, centreY, radius, radius, angle)
+		newVertex := getVertex(x, y, color.White)
+		*vertices = append(*vertices, newVertex)
+	}
+}
+
+func (s *DrawHandler) addVertexUV(vertex *ebiten.Vertex, slice *data.Slice, centreX, centreY, radius float32) {
+	drawOpts := slice.DrawProperties
+
+	// get offset from the centre of the spinner
+	offsetX := vertex.DstX - centreX
+	offsetY := vertex.DstY - centreY
+
+	// determine the rotated offset based on the mid angle
+	midAngle := (drawOpts.StartAngle + drawOpts.EndAngle) / 2
+	cos := float32(math.Cos(float64(-midAngle)))
+	sin := float32(math.Sin(float64(-midAngle)))
+	rotationX := offsetX*cos - offsetY*sin
+	rotationY := offsetX*sin + offsetY*cos
+
+	// calculate poster coordinates
+	posterScale := getPosterScale(radius, drawOpts.SliceImage)
+	posterX := rotationX / float32(posterScale)
+	posterY := rotationY / float32(posterScale)
+
+	vertex.SrcX = posterX + float32(drawOpts.SliceImage.Bounds().Dx())/2
+	vertex.SrcY = posterY + float32(drawOpts.SliceImage.Bounds().Dy())/2
+}
+
+func (s *DrawHandler) getSliceVertices(slice *data.Slice, centreX, centreY, radius float32) []ebiten.Vertex {
+	vertices := make([]ebiten.Vertex, 0)
+
+	// centre vertex for slice
+	centreVertex := getVertex(centreX, centreY, color.White)
+	vertices = append(vertices, centreVertex)
+
+	// jump out to outer side and begin arc
+	addOuterArc(&vertices, slice, centreX, centreY, radius, outerSliceArcSegments)
+
+	for i := range vertices {
+		s.addVertexUV(&vertices[i], slice, centreX, centreY, radius)
+	}
+	return vertices
+}
+
+func (s *DrawHandler) drawSlice(screen *ebiten.Image, slice *data.Slice, centreX, centreY, radius float32) {
+	vertices := s.getSliceVertices(slice, centreX, centreY, radius)
+
+	// indices represent the three corner points of the slice triangle
+	indices := make([]uint16, outerSliceArcSegments*3)
+	for i := 0; i < outerSliceArcSegments; i++ {
+		indices[i*3] = 0
+		indices[i*3+1] = uint16(i + 1)
+		indices[i*3+2] = uint16(i + 2)
 	}
 
-	segments := float32(math.Max(math.Ceil(float64(span/(2*math.Pi/outerSliceArcSegments))), 1))
-
-	for j := 1; j <= int(segments); j++ {
-		t := float32(j) / segments
-		angle := start + (end-start)*t
-
-		pointX, pointY := GetEllipsePoint(centreX, centreY, radiusX, radiusY, angle)
-		path.LineTo(pointX, pointY)
-	}
-
-}
-
-func (s *DrawHandler) getSlicePath(
-	slice *data.Slice,
-	centreX, centreY, radius float32,
-) *vector.Path {
-	path := vector.Path{}
-
-	// move to the centre of the spinner wheel
-	path.MoveTo(centreX, centreY)
-
-	// given the start angle and the circle properties, get the outer corner coords
-	ePointX, ePointY := GetEllipsePoint(centreX, centreY, radius, radius, slice.DrawProperties.StartAngle)
-	path.LineTo(ePointX, ePointY)
-
-	// draw a fancy arc to the slice's other outer corner
-	addOuterArc(&path, centreX, centreY, radius, radius, slice.DrawProperties.StartAngle, slice.DrawProperties.EndAngle)
-
-	// back to the middle again
-	path.LineTo(centreX, centreY)
-	path.Close()
-	return &path
-}
-
-// getPosterScale returns the scale factor to apply to the poster image to fit it within the spinner wheel's slice bounds
-func (s *DrawHandler) getPosterScale(radius float32, poster *ebiten.Image) float64 {
-	initialWidth := float64(poster.Bounds().Dx())
-	initialHeight := float64(poster.Bounds().Dy())
-
-	targetWidth := float64(radius * 2)
-	targetHeight := float64(radius * 2)
-
-	return math.Max(targetWidth/initialWidth, targetHeight/initialHeight)
-}
-
-func (s *DrawHandler) getPosterTranslate(posterScale float64, poster *ebiten.Image) (float64, float64) {
-	initialWidth := float64(poster.Bounds().Dx())
-	initialHeight := float64(poster.Bounds().Dy())
-	targetWidth := float64(posterScale * initialWidth)
-	targetHeight := float64(posterScale * initialHeight)
-	return (targetWidth / 2), (targetHeight / 2)
-}
-
-func (s *DrawHandler) drawSlice(screen *ebiten.Image, spinnerRect image.Rectangle, slice *data.Slice, centreX, centreY, radius float32) {
-
-	// generate the vector slice and then create a mask to fill in with a terrible movie's poster
-	s.maskRenderTarget.Clear()
-	slicePath := s.getSlicePath(slice, centreX, centreY, radius)
-
-	// apply the the slice's vector shape to the masking layer
-	maskFillOptions := &vector.DrawPathOptions{AntiAlias: true}
-	maskFillOptions.ColorScale.ScaleWithColor(color.RGBA{255, 255, 255, 255})
-	vector.FillPath(s.maskRenderTarget, slicePath, nil, maskFillOptions)
-
-	s.sliceRenderTarget.Clear()
-
-	// Draw the movie poster image to render target to be masked over mask target
-	posterScale := s.getPosterScale(radius, slice.DrawProperties.SliceImage)
-	posterXOffset, posterYOffset := s.getPosterTranslate(posterScale, slice.DrawProperties.SliceImage)
-	drawImageOptions := &ebiten.DrawImageOptions{}
-	drawImageOptions.GeoM.Scale(posterScale, posterScale)
-	drawImageOptions.GeoM.Translate(
-		float64(centreX)-posterXOffset,
-		float64(centreY)-posterYOffset,
-	)
-	s.sliceRenderTarget.DrawImage(slice.DrawProperties.SliceImage, drawImageOptions)
-
-	// Draw prepared mask to the render target
-	maskCopyOptions := &ebiten.DrawImageOptions{Blend: ebiten.BlendDestinationIn}
-	s.sliceRenderTarget.DrawImage(s.maskRenderTarget, maskCopyOptions)
-
-	// Draw rendering to the screen
-	screenDrawOptions := &ebiten.DrawImageOptions{}
-	screenDrawOptions.GeoM.Translate(
-		float64(spinnerRect.Min.X),
-		float64(spinnerRect.Min.Y),
-	)
-	screen.DrawImage(s.sliceRenderTarget, screenDrawOptions)
-}
-
-func (s *DrawHandler) EnsureRenderTargets(screenW, screenH int) {
-	if s.maskRenderTarget == nil || s.maskRenderTarget.Bounds().Dx() != screenW || s.maskRenderTarget.Bounds().Dy() != screenH {
-		s.maskRenderTarget = ebiten.NewImage(screenW, screenH)
-		s.sliceRenderTarget = ebiten.NewImage(screenW, screenH)
-	}
+	options := &ebiten.DrawTrianglesOptions{Filter: ebiten.FilterLinear}
+	screen.DrawTriangles(vertices, indices, slice.DrawProperties.SliceImage, options)
 }
 
 func (s *DrawHandler) Draw(screen *ebiten.Image, spinnerRect image.Rectangle) {
 	width := spinnerRect.Dx()
 	height := spinnerRect.Dy()
 	radius := float32(min(float64(width), float64(height))) / 2
-	centreX := float32(width / 2)
-	centreY := float32(height / 2)
-	s.EnsureRenderTargets(width, height)
+	centreX := float32(spinnerRect.Min.X) + float32(width/2)
+	centreY := float32(spinnerRect.Min.Y) + float32(height/2)
 
 	for i := range *s.slices {
 		slice := &(*s.slices)[i]
@@ -153,6 +126,6 @@ func (s *DrawHandler) Draw(screen *ebiten.Image, spinnerRect image.Rectangle) {
 			return
 		}
 
-		s.drawSlice(screen, spinnerRect, slice, centreX, centreY, radius)
+		s.drawSlice(screen, slice, centreX, centreY, radius)
 	}
 }
