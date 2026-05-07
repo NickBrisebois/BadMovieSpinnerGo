@@ -44,3 +44,14 @@ func UpdateAngularVelocityFromAcceleration(angularVelocity *float32, angularAcce
 func UpdateRotationFromAngularVelocity(rotation *float32, angularVelocity float32) {
 	*rotation += angularVelocity * GetDeltaTime()
 }
+
+// getPosterScale returns the scale factor to apply to the poster image to fit it within the spinner wheel's slice bounds
+func getPosterScale(radius float32, poster *ebiten.Image) float64 {
+	initialWidth := float64(poster.Bounds().Dx())
+	initialHeight := float64(poster.Bounds().Dy())
+
+	targetWidth := float64(radius * 2)
+	targetHeight := float64(radius * 2)
+
+	return math.Max(targetWidth/initialWidth, targetHeight/initialHeight)
+}
