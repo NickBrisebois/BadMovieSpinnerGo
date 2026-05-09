@@ -3,6 +3,7 @@ package data
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/cache"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/external"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/filters"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"bytes"
 	"image/jpeg"
@@ -10,6 +11,10 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
+
+type GetMovieListOptions struct {
+	Filters *filters.MovieFilters
+}
 
 type MovieDataHandler struct {
 	spinnerAPI *external.SpinnerAPI
@@ -37,20 +42,29 @@ func NewMovieDataHandler(spinnerAPI *external.SpinnerAPI, logger *slog.Logger) *
 	}
 }
 
-func (m *MovieDataHandler) GetMovieList() []models.MovieMeta {
-	var movieList []models.MovieMeta
-	var err error
+func (m *MovieDataHandler) GetMovieList(options *GetMovieListOptions) []models.MovieMeta {
 
-	if movieList, err = m.cache.GetMovieList(); err != nil {
-		movieList, err = m.spinnerAPI.GetMovies()
+	// check if we have the movie list cached in mem
+	if len(m.memMovieDataCache) == 0 {
+		// if not, check if we have it in the FS or localstorage
+		movieList, err := m.cache.GetMovieList()
 		if err != nil {
-			return make([]models.MovieMeta, 0)
+			// if neither caches have what we need, resort to pulling it from the API
+			movieList, err = m.spinnerAPI.GetMovies()
+			if err != nil {
+				m.logger.Error("failed to get movie list from API", "error", err)
+				return make([]models.MovieMeta, 0)
+			}
+			m.cache.PutMovieList(movieList)
 		}
-		m.cache.PutMovieList(movieList)
+		m.memMovieDataCache = movieList
 	}
 
-	m.memMovieDataCache = movieList
-	return movieList
+	if options != nil && options.Filters != nil {
+		return filters.FilterMovieList(m.memMovieDataCache, options.Filters)
+	}
+
+	return m.memMovieDataCache
 }
 
 func (m *MovieDataHandler) GetMoviePoster(tmdbID int) *ebiten.Image {

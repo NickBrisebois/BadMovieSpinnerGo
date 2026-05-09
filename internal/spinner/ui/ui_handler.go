@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	headerWidgetHeightPercent = 10
-	sidebarWidgetWidthPercent = 35
+	headerWidgetHeightPercent = 3
+	sidebarWidgetWidthPercent = 15
 )
 
 type UIHandler struct {

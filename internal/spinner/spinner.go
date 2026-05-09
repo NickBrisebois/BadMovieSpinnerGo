@@ -2,6 +2,7 @@ package spinner
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/filters"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
@@ -35,20 +36,26 @@ func NewSpinner(
 }
 
 func (s *SpinnerHandler) initDrawHandler() {
-	movies := s.movieData.GetMovieList()
+	movies := s.movieData.GetMovieList(
+		&data.GetMovieListOptions{
+			Filters: &filters.MovieFilters{
+				Watched: filters.WatchedStatusUnwatched,
+			},
+		},
+	)
 	sliceAngle := render.GetSliceAngle(len(movies))
 
 	// Initialise the wheel with 0'd out animation properties
 	wheelDrawProperties := &data.WheelDrawProperties{
 		SliceAngle:          sliceAngle,
 		Rotation:            0,
-		AngularVelocity:     0.5,
-		AngularAcceleration: 0.02,
-		MaxVelocity:         0.5,
+		AngularVelocity:     0.05,
+		AngularAcceleration: 0.002,
+		MaxVelocity:         0.1,
 	}
 
 	s.wheel = &data.Wheel{
-		IsSpinning:     true,
+		IsSpinning:     false,
 		DrawProperties: wheelDrawProperties,
 		Slices:         s.genSlices(sliceAngle, movies),
 	}
