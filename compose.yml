@@ -3,10 +3,23 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: build-api
+      target: api
     ports:
       - "8080:8080"
     environment:
       - SERVER_HOST=0.0.0.0
+    env_file:
+      - .env
+
+  spinner-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    ports:
+      - "8000:8000"
+    environment:
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=8000
     env_file:
       - .env
