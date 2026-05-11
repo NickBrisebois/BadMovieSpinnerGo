@@ -96,6 +96,10 @@ run:  ## Run the spinner linux binary with live reload but no debugger
 run-api:  ## Run the spinner API with live reload with delve debugger
 	go tool air -c .air-api.toml -build.entrypoint $(API_BIN_OUT)
 
+.PHONY: run-web
+run-web:  ## Run the full web-based frontend
+	go tool air -c .air-web.toml -build.entrypoint $(APP_WEB_BIN_OUT)
+
 # ======================
 # ---- CODE QUALITY ----
 # ======================

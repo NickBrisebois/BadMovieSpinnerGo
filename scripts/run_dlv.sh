@@ -3,7 +3,7 @@ set -e
 
 TARGET="${1:-api}"
 case "$TARGET" in
-    api|spinner) ;;
+    api|spinner|web) ;;
     *)
         echo "Usage: $0 [api|spinner]"
         exit 1
@@ -12,6 +12,8 @@ esac
 
 if [ "$TARGET" = "spinner" ]; then
     CMD="cmd/spinner/main.go"
+elif [ "$TARGET" = "web" ]; then
+    CMD="cmd/web/main.go"
 else
     CMD="cmd/api/main.go"
 fi

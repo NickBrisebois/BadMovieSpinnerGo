@@ -3,7 +3,7 @@ package api
 type Config struct {
 	Server struct {
 		Host           string   `env:"SERVER_HOST" default:"localhost"`
-		Port           int      `env:"SERVER_PORT" default:"8080"`
+		Port           string   `env:"SERVER_PORT" default:"8080"`
 		AllowedOrigins []string `env:"ALLOWED_ORIGINS" delimiter:","`
 	}
 	Auth struct {

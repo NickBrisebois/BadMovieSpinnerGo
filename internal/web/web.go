@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-//go:embed html/*
+//go:embed html
 var spinnerRootFS embed.FS
 
 func NewWebServer(config *WebConfig, logger *slog.Logger) (*http.Server, error) {
@@ -16,6 +16,7 @@ func NewWebServer(config *WebConfig, logger *slog.Logger) (*http.Server, error) 
 	mux.Handle("/", http.FileServer(http.FS(spinnerRootFS)))
 
 	serverAddr := config.WebHost + ":" + config.WebPort
+	logger.Debug("web server listening on", "addr", serverAddr)
 	return &http.Server{
 		Addr:    serverAddr,
 		Handler: mux,

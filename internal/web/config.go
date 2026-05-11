@@ -1,6 +1,6 @@
 package web
 
 type WebConfig struct {
-	WebHost string `env:"WEB_HOST" default:"http://localhost"`
+	WebHost string `env:"WEB_HOST" default:"localhost"`
 	WebPort string `env:"WEB_PORT" default:"8000"`
 }

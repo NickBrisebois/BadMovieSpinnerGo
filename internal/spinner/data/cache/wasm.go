@@ -50,7 +50,7 @@ func (c *wasmCache) setCacheItem(key, value string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if jsError, ok := r.(js.Error); ok {
-				err = fmt.Errorf("failed to set cache item: %w", jsError.Error())
+				err = fmt.Errorf("failed to set cache item: %w", jsError)
 			} else {
 				err = fmt.Errorf("unknown panic while writing to localStorage: %v", r)
 			}

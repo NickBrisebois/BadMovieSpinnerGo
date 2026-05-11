@@ -28,5 +28,8 @@ func main() {
 		logger.Error("could not create web server", "err", err.Error())
 		os.Exit(1)
 	}
-	webServer.ListenAndServe()
+	if err := webServer.ListenAndServe(); err != nil {
+		logger.Error("could not start web server", "err", err.Error())
+		os.Exit(1)
+	}
 }

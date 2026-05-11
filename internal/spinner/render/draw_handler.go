@@ -17,7 +17,7 @@ type DrawHandler struct {
 
 // outerSliceArcSegments defines how many segments to draw for the outer arc connecting the two corners
 // higher values == smoother arc but worsening performance
-const outerSliceArcSegments = 20
+const outerSliceArcSegments = 360
 
 func NewDrawHandler(
 	slices *[]data.Slice,
