@@ -27,6 +27,7 @@ API_BIN_OUT = $(BUILD_DIR)/$(API_BIN)
 # INSTALL PATHS
 API_INSTALL_DIR?=/opt/spinner/api/
 WASM_INSTALL_DIR?=/opt/spinner/web/static
+WEB_INSTALL_DIR?=/opt/spinner/web
 LINUX_INSTALL_DIR?=/opt/spinner/linux
 
 
@@ -80,6 +81,12 @@ install-linux:  ## Copy Linux binary to install target directory
 install-api:  ## Copy API binary to install target directory
 		mkdir -p $(API_INSTALL_DIR)
 		cp $(API_BIN) $(API_INSTALL_DIR)/$(API_BIN)
+
+.PHONY: install-web
+install-web:  ## Copy web binary to install target directory
+	mkdir -p $(WEB_INSTALL_DIR)
+	cp $(APP_WEB_BIN_OUT) $(WEB_INSTALL_DIR)/$(APP_WEB_BIN)
+
 
 # ===============
 # ---- DEBUG ----

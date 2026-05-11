@@ -20,5 +20,7 @@ CMD ["/opt/spinner/api/spinner-api"]
 
 # TARGET: WEB
 FROM setup AS web
+RUN make build-web
+RUN make install-web
 
 CMD ["/opt/spinner/web/spinner-web"]

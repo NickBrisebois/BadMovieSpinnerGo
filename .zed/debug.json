@@ -27,6 +27,5 @@
     "mode": "debug",
     "program": "cmd/web/main.go",
     "envFile": ".env",
-    "buildFlags": [""],
   },
 ]
