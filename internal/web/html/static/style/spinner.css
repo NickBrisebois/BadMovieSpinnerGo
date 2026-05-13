@@ -40,17 +40,14 @@
     &::before {
         content: "";
         position: absolute;
-        /* Make ::before larger than the container, then rotate it.
-               `overflow: hidden` on parent will clip it.
-               This creates the effect of a gradient "moving through" the border area. */
         width: 150%;
         height: 300%;
         left: -10%;
-        border-radius: 50%; /* CRITICAL: Make the rotating gradient area circular */
+        border-radius: 50%;
         background: linear-gradient(45deg, #a94fca, #ff6b9d, #4ecdc4, #45b7d1);
-        z-index: 0; /* Place it above the default background, but below ::after */
-        filter: blur(8px); /* Soften the glow effect a bit */
-        opacity: 0.8; /* Make it a bit more pronounced */
+        z-index: 0;
+        filter: blur(8px);
+        opacity: 0.8;
         animation: glowRotate 4s linear infinite;
     }
 }
