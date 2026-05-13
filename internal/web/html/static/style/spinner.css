@@ -1,0 +1,36 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
+
+@keyframes glowRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: translateX(-50%) rotate(180deg) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) rotate(180deg) scale(1.1);
+    }
+}
+
+#spinner-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 2em;
+}
+
+#spinner-container .spinner-frame {
+    flex-grow: 1;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
