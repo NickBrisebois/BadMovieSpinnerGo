@@ -26,7 +26,6 @@ type UIHandler struct {
 	contentContainer *widget.Container
 	spinnerBox       *swidgets.SpinnerBox
 	sidebar          *swidgets.Sidebar
-	toolbar          *swidgets.Header
 	logger           *slog.Logger
 }
 
@@ -38,13 +37,10 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 			widget.GridLayoutOpts.Spacing(0, 0),
 			widget.GridLayoutOpts.Stretch(
 				[]bool{true},
-				[]bool{false, true},
+				[]bool{true},
 			),
 		)),
 	)
-
-	// header gets its own fancy container above the main content
-	header := swidgets.NewHeader(screenWidth, headerWidgetHeightPercent, res.ThemeHeaderBGColour)
 
 	// create the main content container
 	contentContainer := widget.NewContainer(
@@ -61,8 +57,8 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		),
 	)
 
-	rootContainer.AddChild(header.GetContainer(), contentContainer)
 	ui := ebitenui.UI{Container: rootContainer}
+	rootContainer.AddChild(contentContainer)
 
 	// use primary UI to init the handler to return
 	handler := UIHandler{
@@ -71,7 +67,6 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		screenHeight:     screenHeight,
 		rootContainer:    rootContainer,
 		contentContainer: contentContainer,
-		toolbar:          header,
 		sidebar:          swidgets.NewSidebar(screenWidth, sidebarWidgetWidthPercent, res.ThemeSidebarBGColour),
 		spinnerBox:       swidgets.NewSpinnerBox(),
 		logger:           logger,
