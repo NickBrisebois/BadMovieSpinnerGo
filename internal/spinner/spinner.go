@@ -136,6 +136,7 @@ func (s *SpinnerHandler) Update() error {
 
 func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 	spinnerRect := s.uiHandler.GetSpinnerBoxRect()
+
 	if !s.initialised && !spinnerRect.Empty() {
 		// The spinner has to be initialised after the first UI draw since
 		// the spinner box widget's dimensions are only calculated during that
@@ -153,5 +154,11 @@ func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 }
 
 func (s *SpinnerHandler) Layout(outsideWidth, outsideHeight int) (int, int) {
+	if outsideWidth != s.screenWidth || outsideHeight != s.screenHeight {
+		s.logger.Info("Screen resize detected", "width", outsideWidth, "height", outsideHeight)
+		s.uiHandler.SetDimensions(outsideWidth, outsideHeight)
+	}
+	s.screenHeight = outsideHeight
+	s.screenWidth = outsideWidth
 	return s.screenWidth, s.screenHeight
 }

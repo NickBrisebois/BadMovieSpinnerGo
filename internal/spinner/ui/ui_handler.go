@@ -86,6 +86,11 @@ func (u *UIHandler) GetSpinnerBoxRect() image.Rectangle {
 	return u.spinnerBox.GetContainer().GetWidget().Rect
 }
 
+func (u *UIHandler) SetDimensions(screenWidth, screenHeight int) {
+	u.screenWidth = screenWidth
+	u.screenHeight = screenHeight
+}
+
 func (u *UIHandler) Update() error {
 	u.ui.Update()
 	return nil
