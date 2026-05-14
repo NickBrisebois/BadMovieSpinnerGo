@@ -2,6 +2,7 @@ package spinner
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/external"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/filters"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui"
@@ -12,27 +13,43 @@ import (
 )
 
 type SpinnerHandler struct {
-	initialised bool
-	drawHandler *render.DrawHandler
-	uiHandler   *ui.UIHandler
-	movieData   *data.MovieDataHandler
-	wheel       *data.Wheel
-	logger      *slog.Logger
+	initialised  bool
+	config       *SpinnerConfig
+	screenWidth  int
+	screenHeight int
+	drawHandler  *render.DrawHandler
+	uiHandler    *ui.UIHandler
+	movieData    *data.MovieDataHandler
+	wheel        *data.Wheel
+	logger       *slog.Logger
 }
 
 func NewSpinner(
-	movieDataHandler *data.MovieDataHandler,
+	config *SpinnerConfig,
 	screenWidth, screenHeight int,
 	logger *slog.Logger,
-) *SpinnerHandler {
-	spinner := &SpinnerHandler{
-		uiHandler:   ui.NewUIHandler(screenWidth, screenHeight, logger),
-		movieData:   movieDataHandler,
-		drawHandler: nil, // dependent on UI so initialised during first draw
-		logger:      logger,
+) (*SpinnerHandler, error) {
+	// APIs!
+	apiBaseURL, err := config.ServerURL()
+	if err != nil {
+		logger.Error("failed to parse API server URL", "error", err)
+		return nil, err
 	}
+	spinnerAPI := external.NewSpinnerAPI(apiBaseURL, logger)
 
-	return spinner
+	// Data!
+	moviesDataHandler := data.NewMovieDataHandler(spinnerAPI, logger)
+
+	// Logic!
+	return &SpinnerHandler{
+		uiHandler:    ui.NewUIHandler(screenWidth, screenHeight, logger),
+		config:       config,
+		screenWidth:  screenWidth,
+		screenHeight: screenHeight,
+		movieData:    moviesDataHandler,
+		drawHandler:  nil, // dependent on UI so initialised during first draw
+		logger:       logger,
+	}, nil
 }
 
 func (s *SpinnerHandler) initDrawHandler() {
@@ -103,13 +120,18 @@ func (s *SpinnerHandler) updateWheelState() {
 	}
 }
 
-func (s *SpinnerHandler) Update() {
+func (s *SpinnerHandler) HandleScreenResize() {
+
+}
+
+func (s *SpinnerHandler) Update() error {
 	s.uiHandler.Update()
 
 	if !s.initialised || s.wheel.Slices == nil || !s.wheel.IsSpinning {
-		return
+		return nil
 	}
 	s.updateWheelState()
+	return nil
 }
 
 func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
@@ -128,4 +150,8 @@ func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 		spinnerScreen := screen.SubImage(spinnerRect).(*ebiten.Image)
 		s.drawHandler.Draw(spinnerScreen, spinnerRect)
 	}
+}
+
+func (s *SpinnerHandler) Layout(outsideWidth, outsideHeight int) (int, int) {
+	return s.screenWidth, s.screenHeight
 }
