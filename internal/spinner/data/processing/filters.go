@@ -1,4 +1,4 @@
-package filters
+package processing
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"

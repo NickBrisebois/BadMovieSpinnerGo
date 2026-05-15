@@ -3,7 +3,7 @@ package data
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/cache"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/external"
-	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/filters"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/processing"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"bytes"
 	"image/jpeg"
@@ -13,7 +13,7 @@ import (
 )
 
 type GetMovieListOptions struct {
-	Filters *filters.MovieFilters
+	Filters *processing.MovieFilters
 }
 
 type MovieDataHandler struct {
@@ -61,10 +61,20 @@ func (m *MovieDataHandler) GetMovieList(options *GetMovieListOptions) []models.M
 	}
 
 	if options != nil && options.Filters != nil {
-		return filters.FilterMovieList(m.memMovieDataCache, options.Filters)
+		return processing.FilterMovieList(m.memMovieDataCache, options.Filters)
 	}
 
 	return m.memMovieDataCache
+}
+
+func (m *MovieDataHandler) GetMoviesBySuggestedBy(options *GetMovieListOptions) map[string][]models.MovieMeta {
+	movieList := m.GetMovieList(options)
+	sortedMovies, err := processing.SortMovieList(movieList, &processing.MovieSortOptions{Type: processing.SortSuggestedBy})
+	if err != nil {
+		m.logger.Error("failed to sort movie list", "error", err)
+		return nil
+	}
+	return sortedMovies
 }
 
 func (m *MovieDataHandler) GetMoviePoster(tmdbID int) *ebiten.Image {

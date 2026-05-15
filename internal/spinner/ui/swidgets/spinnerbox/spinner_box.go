@@ -1,11 +1,14 @@
-package swidgets
+package spinnerbox
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
+
 	"github.com/ebitenui/ebitenui/widget"
 )
 
 type SpinnerBox struct {
 	container *widget.Container
+	movies    *map[string][]models.MovieMeta
 }
 
 func NewSpinnerBox() *SpinnerBox {
@@ -24,4 +27,8 @@ func NewSpinnerBox() *SpinnerBox {
 
 func (g *SpinnerBox) GetContainer() *widget.Container {
 	return g.container
+}
+
+func (g *SpinnerBox) SetMovies(movies *map[string][]models.MovieMeta) {
+	g.movies = movies
 }

@@ -2,7 +2,9 @@ package ui
 
 import (
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
-	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/sidebar"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/spinnerbox"
+	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"image"
 	"log/slog"
 
@@ -22,10 +24,10 @@ type UIHandler struct {
 	screenHeight int
 	// rootContainer contains *everything*
 	rootContainer *widget.Container
-	// contentContainer holds the main content under the toolbar
+	// contentContainer holds the main content under the toolbar* (*toolbar currently un-implemented)
 	contentContainer *widget.Container
-	spinnerBox       *swidgets.SpinnerBox
-	sidebar          *swidgets.Sidebar
+	spinnerBox       *spinnerbox.SpinnerBox
+	sidebar          *sidebar.Sidebar
 	logger           *slog.Logger
 }
 
@@ -67,8 +69,8 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		screenHeight:     screenHeight,
 		rootContainer:    rootContainer,
 		contentContainer: contentContainer,
-		sidebar:          swidgets.NewSidebar(screenWidth, sidebarWidgetWidthPercent, res.ThemeSidebarBGColour),
-		spinnerBox:       swidgets.NewSpinnerBox(),
+		sidebar:          sidebar.NewSidebar(screenWidth, sidebarWidgetWidthPercent, res.ThemeSidebarBGColour),
+		spinnerBox:       spinnerbox.NewSpinnerBox(),
 		logger:           logger,
 	}
 	contentContainer.AddChild(handler.sidebar.GetContainer())
@@ -84,6 +86,10 @@ func (u *UIHandler) GetSpinnerBoxRect() image.Rectangle {
 func (u *UIHandler) SetDimensions(screenWidth, screenHeight int) {
 	u.screenWidth = screenWidth
 	u.screenHeight = screenHeight
+}
+
+func (u *UIHandler) SetMovies(movies *map[string][]models.MovieMeta) {
+	u.sidebar.SetMovies(movies)
 }
 
 func (u *UIHandler) Update() error {

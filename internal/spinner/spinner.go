@@ -3,7 +3,7 @@ package spinner
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/external"
-	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/filters"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/processing"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
@@ -29,34 +29,36 @@ func NewSpinner(
 	screenWidth, screenHeight int,
 	logger *slog.Logger,
 ) (*SpinnerHandler, error) {
-	// APIs!
 	apiBaseURL, err := config.ServerURL()
 	if err != nil {
 		logger.Error("failed to parse API server URL", "error", err)
 		return nil, err
 	}
 	spinnerAPI := external.NewSpinnerAPI(apiBaseURL, logger)
-
-	// Data!
 	moviesDataHandler := data.NewMovieDataHandler(spinnerAPI, logger)
+	uiHandler := ui.NewUIHandler(screenWidth, screenHeight, logger)
 
-	// Logic!
-	return &SpinnerHandler{
-		uiHandler:    ui.NewUIHandler(screenWidth, screenHeight, logger),
+	spinnerHandler := &SpinnerHandler{
+		uiHandler:    uiHandler,
 		config:       config,
 		screenWidth:  screenWidth,
 		screenHeight: screenHeight,
 		movieData:    moviesDataHandler,
 		drawHandler:  nil, // dependent on UI so initialised during first draw
 		logger:       logger,
-	}, nil
+	}
+
+	moviesBySuggestedBy := moviesDataHandler.GetMoviesBySuggestedBy(nil)
+	spinnerHandler.uiHandler.SetMovies(&moviesBySuggestedBy)
+
+	return spinnerHandler, nil
 }
 
 func (s *SpinnerHandler) initDrawHandler() {
 	movies := s.movieData.GetMovieList(
 		&data.GetMovieListOptions{
-			Filters: &filters.MovieFilters{
-				Watched: filters.WatchedStatusUnwatched,
+			Filters: &processing.MovieFilters{
+				Watched: processing.WatchedStatusUnwatched,
 			},
 		},
 	)
@@ -118,10 +120,6 @@ func (s *SpinnerHandler) updateWheelState() {
 			sliceDrawProperties.EndAngle += rotation
 		}
 	}
-}
-
-func (s *SpinnerHandler) HandleScreenResize() {
-
 }
 
 func (s *SpinnerHandler) Update() error {
