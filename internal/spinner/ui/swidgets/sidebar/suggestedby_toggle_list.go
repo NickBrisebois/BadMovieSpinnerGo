@@ -34,6 +34,11 @@ func NewSuggestedByToggle(suggestedByList []string, uiRes *res.UIResources) *Sug
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 			VerticalPosition: widget.GridLayoutPositionStart,
 		})),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(3),
+			widget.GridLayoutOpts.Stretch([]bool{true, true, true}, nil),
+			widget.GridLayoutOpts.Spacing(10, 10),
+		)),
 	)
 
 	for _, suggestedBy := range suggestedByList {
