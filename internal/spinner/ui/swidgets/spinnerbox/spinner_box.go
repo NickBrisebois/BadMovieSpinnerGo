@@ -1,17 +1,19 @@
 package spinnerbox
 
 import (
+	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 
 	"github.com/ebitenui/ebitenui/widget"
 )
 
 type SpinnerBox struct {
-	container *widget.Container
-	movies    *map[string][]models.MovieMeta
+	container   *widget.Container
+	uiResources *res.UIResources
+	movies      *map[string][]models.MovieMeta
 }
 
-func NewSpinnerBox() *SpinnerBox {
+func NewSpinnerBox(uiResources *res.UIResources) *SpinnerBox {
 	spinnerRootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
@@ -21,7 +23,8 @@ func NewSpinnerBox() *SpinnerBox {
 		),
 	)
 	return &SpinnerBox{
-		container: spinnerRootContainer,
+		container:   spinnerRootContainer,
+		uiResources: uiResources,
 	}
 }
 

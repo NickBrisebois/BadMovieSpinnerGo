@@ -4,7 +4,8 @@ import (
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	swidgetutils "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/utils"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
-	"image/color"
+	"maps"
+	"slices"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -13,15 +14,16 @@ import (
 type Sidebar struct {
 	screenWidth  int
 	widthPercent int // width as a percentage of the screen width (eg. a value of 50 == 50% of screenWidth)
+	uiResources  *res.UIResources
 	container    *widget.Container
 	movies       *map[string][]models.MovieMeta
 }
 
-func NewSidebar(screenWidth int, widthPercent int, bgColour color.Color) *Sidebar {
+func NewSidebar(screenWidth int, widthPercent int, uiResources *res.UIResources) *Sidebar {
 	sidebarWidth := swidgetutils.CalculatePercentOf(screenWidth, widthPercent)
 	sidebarContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(
-			image.NewNineSliceColor(bgColour),
+			image.NewNineSliceColor(res.ThemeSidebarBGColour),
 		),
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
@@ -36,17 +38,12 @@ func NewSidebar(screenWidth int, widthPercent int, bgColour color.Color) *Sideba
 			widget.WidgetOpts.MinSize(int(sidebarWidth), 0),
 		),
 	)
+
 	return &Sidebar{
 		screenWidth:  screenWidth,
 		widthPercent: widthPercent,
 		container:    sidebarContainer,
-	}
-}
-
-func (s *Sidebar) addSuggestedByNames() {
-	for suggestedBy, _ := range *s.movies {
-		text := widget.NewText(widget.TextOpts.Text(suggestedBy, &res.ThemeFontFaceBold, res.ThemeBodyTextColour))
-		s.container.AddChild(text)
+		uiResources:  uiResources,
 	}
 }
 
@@ -60,5 +57,9 @@ func (s *Sidebar) GetContainer() *widget.Container {
 
 func (s *Sidebar) SetMovies(movies *map[string][]models.MovieMeta) {
 	s.movies = movies
-	s.addSuggestedByNames()
+	suggestedByToggles := NewSuggestedByToggle(
+		slices.Collect(maps.Keys(*movies)),
+		s.uiResources,
+	)
+	s.container.AddChild(suggestedByToggles.GetContainer())
 }

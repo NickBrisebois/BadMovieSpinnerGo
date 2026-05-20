@@ -1,12 +1,9 @@
 package res
 
 import (
-	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/assets"
+	_ "image"
 	"image/color"
-	"log"
 	"strconv"
-
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 const (
@@ -18,44 +15,70 @@ const (
 	colourLightBronze   = "eaac8b"
 	colourWhite         = "f4e9cd"
 
-	fontFaceRegular      = "fonts/NotoSans-Regular.ttf"
-	fontFaceBold         = "fonts/NotoSans-Bold.ttf"
-	fontFaceIconsRegular = "fonts/FontAwesome7Free-Regular-400.otf"
-	fontFaceIconsSolid   = "fonts/FontAwesome7Free-Solid-900.otf"
+	fontFaceRegularPath      = "fonts/NotoSans-Regular.ttf"
+	fontFaceBoldPath         = "fonts/NotoSans-Bold.ttf"
+	fontFaceIconsRegularPath = "fonts/FontAwesome7Free-Regular-400.otf"
+	fontFaceIconsSolidPath   = "fonts/FontAwesome7Free-Solid-900.otf"
+
+	imgCheckboxUnchecked         = "graphics/checkbox/checkbox.png"
+	imgCheckboxUncheckedHovered  = "graphics/checkbox/checkbox.png"
+	imgCheckboxUncheckedDisabled = "graphics/checkbox/checkbox.png"
+	imgCheckboxChecked           = "graphics/checkbox/checkbox-checked.png"
+	imgCheckboxCheckedHovered    = "graphics/checkbox/checkbox.png"
+	imgCheckboxCheckedDisabled   = "graphics/checkbox/checkbox.png"
+	imgCheckboxGreyed            = "graphics/checkbox/checkbox.png"
+	imgCheckboxGreyedHovered     = "graphics/checkbox/checkbox.png"
+	imgCheckboxGreyedDisabled    = "graphics/checkbox/checkbox.png"
+	checkboxSpacing              = 10
 )
 
 var (
-	ThemeBGColour           = hexToColour(colourDuskBlue)
-	ThemeSidebarBGColour    = hexToColour(colourDustyLavender)
-	ThemeHeaderBGColour     = hexToColour(colourRosewood)
-	ThemeBodyAccentColour   = hexToColour(colourRosewood)
-	ThemeBodyTextColour     = hexToColour(colourWhite)
-	ThemeHeaderTextColour   = hexToColour(colourWhite)
-	ThemeHeaderAccentColour = hexToColour(colourLightBronze)
+	ThemeBGColour                   = hexToColour(colourDuskBlue)
+	ThemeSidebarBGColour            = hexToColour(colourDustyLavender)
+	ThemeSidebarLabelIdleColour     = hexToColour(colourWhite)
+	ThemeSidebarLabelDisabledColour = hexToColour(colourLightBronze)
+	ThemeHeaderBGColour             = hexToColour(colourRosewood)
+	ThemeBodyAccentColour           = hexToColour(colourRosewood)
+	ThemeBodyTextColour             = hexToColour(colourWhite)
+	ThemeHeaderTextColour           = hexToColour(colourWhite)
+	ThemeHeaderAccentColour         = hexToColour(colourLightBronze)
 
-	ThemeFontFaceRegular      = loadFont(fontFaceRegular, 14)
-	ThemeFontFaceBold         = loadFont(fontFaceBold, 16)
-	ThemeFontFaceIconsRegular = loadFont(fontFaceIconsRegular, 16)
-	ThemeFontFaceIconsSolid   = loadFont(fontFaceIconsSolid, 16)
+	fontFaceRegular      = fontConfig{fontPath: fontFaceRegularPath, fontSize: 14}
+	fontFaceBold         = fontConfig{fontPath: fontFaceBoldPath, fontSize: 14}
+	fontFaceIconsRegular = fontConfig{fontPath: fontFaceIconsRegularPath, fontSize: 16}
+	fontFaceIconsSolid   = fontConfig{fontPath: fontFaceIconsSolidPath, fontSize: 16}
 )
 
-func loadFont(fontPath string, fontSize float64) text.Face {
-	fontFile, err := assets.Fonts.Open(fontPath)
+type UIResources struct {
+	Fonts          *FontResources
+	Checkbox       *CheckboxResources
+	LabelResources *LabelResources
+}
+
+func NewUIResources() (*UIResources, error) {
+	checkbox, err := loadCheckboxResources()
 	if err != nil {
-		log.Fatal(err)
-		return nil
+		return nil, err
 	}
 
-	faceSource, err := text.NewGoTextFaceSource(fontFile)
+	fontResources, err := loadFontResources(fontFaceRegular, fontFaceBold, fontFaceIconsRegular, fontFaceIconsSolid)
 	if err != nil {
-		log.Fatal(err)
-		return nil
+		return nil, err
 	}
 
-	return &text.GoTextFace{
-		Source: faceSource,
-		Size:   fontSize,
-	}
+	labelResources := newLabelResources(
+		labelStateColours{
+			idle:     ThemeSidebarLabelIdleColour,
+			disabled: ThemeSidebarLabelDisabledColour,
+		},
+		fontResources.FaceRegular,
+	)
+
+	return &UIResources{
+		Fonts:          fontResources,
+		LabelResources: labelResources,
+		Checkbox:       checkbox,
+	}, nil
 }
 
 func hexToColour(h string) color.Color {

@@ -19,12 +19,11 @@ const (
 )
 
 type UIHandler struct {
-	ui           *ebitenui.UI
-	screenWidth  int
-	screenHeight int
-	// rootContainer contains *everything*
-	rootContainer *widget.Container
-	// contentContainer holds the main content under the toolbar* (*toolbar currently un-implemented)
+	ui               *ebitenui.UI
+	uiResources      *res.UIResources
+	screenWidth      int
+	screenHeight     int
+	rootContainer    *widget.Container
 	contentContainer *widget.Container
 	spinnerBox       *spinnerbox.SpinnerBox
 	sidebar          *sidebar.Sidebar
@@ -62,15 +61,22 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 	ui := ebitenui.UI{Container: rootContainer}
 	rootContainer.AddChild(contentContainer)
 
+	uiResources, err := res.NewUIResources()
+	if err != nil {
+		logger.Error("failed to load UI resources", "error", err)
+		return nil
+	}
+
 	// use primary UI to init the handler to return
 	handler := UIHandler{
 		ui:               &ui,
+		uiResources:      uiResources,
 		screenWidth:      screenWidth,
 		screenHeight:     screenHeight,
 		rootContainer:    rootContainer,
 		contentContainer: contentContainer,
-		sidebar:          sidebar.NewSidebar(screenWidth, sidebarWidgetWidthPercent, res.ThemeSidebarBGColour),
-		spinnerBox:       spinnerbox.NewSpinnerBox(),
+		sidebar:          sidebar.NewSidebar(screenWidth, sidebarWidgetWidthPercent, uiResources),
+		spinnerBox:       spinnerbox.NewSpinnerBox(uiResources),
 		logger:           logger,
 	}
 	contentContainer.AddChild(handler.sidebar.GetContainer())
