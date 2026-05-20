@@ -9,7 +9,17 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-func loadGraphic(path string, targetWidth, targetHeight int) (*ebiten.Image, error) {
+type scaleOpts struct {
+	targetWidth  int
+	targetHeight int
+}
+
+type graphicLoadOptions struct {
+	// scale image being loaded before returning it to specified dimensions
+	scaleOpts *scaleOpts
+}
+
+func loadGraphic(path string, loadOpts *graphicLoadOptions) (*ebiten.Image, error) {
 	f, err := assets.Graphics.Open(path)
 	if err != nil {
 		return nil, err
@@ -20,11 +30,14 @@ func loadGraphic(path string, targetWidth, targetHeight int) (*ebiten.Image, err
 		return nil, err
 	}
 
-	if targetWidth == 0 && targetHeight == 0 {
+	if loadOpts == nil || loadOpts.scaleOpts == nil {
 		return img, nil
 	}
 
 	// scale larger images to the target size if requested (there's probably a better way to do this?)
+	targetWidth := loadOpts.scaleOpts.targetWidth
+	targetHeight := loadOpts.scaleOpts.targetHeight
+
 	scaleX := float64(targetWidth) / float64(img.Bounds().Dx())
 	scaleY := float64(targetHeight) / float64(img.Bounds().Dy())
 
@@ -44,39 +57,42 @@ type CheckboxResources struct {
 func loadCheckboxResources() (*CheckboxResources, error) {
 	targetCheckboxWidth := 14
 	targetCheckboxHeight := 14
-	uncheckedImg, err := loadGraphic(imgCheckboxUnchecked, targetCheckboxWidth, targetCheckboxHeight)
+	scaleOpts := &scaleOpts{targetWidth: targetCheckboxWidth, targetHeight: targetCheckboxHeight}
+	loadOpts := &graphicLoadOptions{scaleOpts: scaleOpts}
+
+	uncheckedImg, err := loadGraphic(imgCheckboxUnchecked, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	uncheckedHoveredImg, err := loadGraphic(imgCheckboxUncheckedHovered, targetCheckboxWidth, targetCheckboxHeight)
+	uncheckedHoveredImg, err := loadGraphic(imgCheckboxUncheckedHovered, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	uncheckedDisabledImg, err := loadGraphic(imgCheckboxUncheckedDisabled, targetCheckboxWidth, targetCheckboxHeight)
+	uncheckedDisabledImg, err := loadGraphic(imgCheckboxUncheckedDisabled, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	checkedImg, err := loadGraphic(imgCheckboxChecked, targetCheckboxWidth, targetCheckboxHeight)
+	checkedImg, err := loadGraphic(imgCheckboxChecked, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	checkedHoveredImg, err := loadGraphic(imgCheckboxCheckedHovered, targetCheckboxWidth, targetCheckboxHeight)
+	checkedHoveredImg, err := loadGraphic(imgCheckboxCheckedHovered, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	checkedDisabledImg, err := loadGraphic(imgCheckboxCheckedDisabled, targetCheckboxWidth, targetCheckboxHeight)
+	checkedDisabledImg, err := loadGraphic(imgCheckboxCheckedDisabled, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	greyedImg, err := loadGraphic(imgCheckboxGreyed, targetCheckboxWidth, targetCheckboxHeight)
+	greyedImg, err := loadGraphic(imgCheckboxGreyed, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	greyedHoveredImg, err := loadGraphic(imgCheckboxGreyedHovered, targetCheckboxWidth, targetCheckboxHeight)
+	greyedHoveredImg, err := loadGraphic(imgCheckboxGreyedHovered, loadOpts)
 	if err != nil {
 		return nil, err
 	}
-	greyedDisabledImg, err := loadGraphic(imgCheckboxGreyedDisabled, targetCheckboxWidth, targetCheckboxHeight)
+	greyedDisabledImg, err := loadGraphic(imgCheckboxGreyedDisabled, loadOpts)
 	if err != nil {
 		return nil, err
 	}

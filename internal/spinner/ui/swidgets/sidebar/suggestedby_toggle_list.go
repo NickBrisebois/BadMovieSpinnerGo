@@ -2,6 +2,7 @@ package sidebar
 
 import (
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
+	"fmt"
 
 	"github.com/ebitenui/ebitenui/widget"
 )
@@ -35,14 +36,21 @@ func NewSuggestedByToggle(suggestedByList []string, uiRes *res.UIResources) *Sug
 			VerticalPosition: widget.GridLayoutPositionStart,
 		})),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(3),
-			widget.GridLayoutOpts.Stretch([]bool{true, true, true}, nil),
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Stretch([]bool{true, true}, nil),
 			widget.GridLayoutOpts.Spacing(10, 10),
+			widget.GridLayoutOpts.Padding(widget.NewInsetsSimple(10)),
 		)),
 	)
 
 	for _, suggestedBy := range suggestedByList {
-		checkbox := getCheckboxWidget(suggestedBy, nil, uiRes)
+		checkbox := getCheckboxWidget(
+			suggestedBy,
+			func(args *widget.CheckboxChangedEventArgs) {
+				fmt.Println("checkbox changed: ", args.State)
+			},
+			uiRes,
+		)
 		suggestedByListContainer.AddChild(checkbox)
 	}
 
