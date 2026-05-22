@@ -21,15 +21,15 @@ const (
 	fontFaceIconsSolidPath   = "fonts/FontAwesome7Free-Solid-900.otf"
 
 	imgCheckboxUnchecked         = "graphics/checkbox/checkbox.png"
-	imgCheckboxUncheckedHovered  = "graphics/checkbox/checkbox.png"
+	imgCheckboxUncheckedHovered  = "graphics/checkbox/checkbox-checked-hover.png"
 	imgCheckboxUncheckedDisabled = "graphics/checkbox/checkbox.png"
 	imgCheckboxChecked           = "graphics/checkbox/checkbox-checked.png"
-	imgCheckboxCheckedHovered    = "graphics/checkbox/checkbox-checked-hover.png"
-	imgCheckboxCheckedDisabled   = "graphics/checkbox/checkbox-checked-hover.png"
+	imgCheckboxCheckedHovered    = "graphics/checkbox/checkbox-checked.png"
+	imgCheckboxCheckedDisabled   = "graphics/checkbox/checkbox-checked.png"
 	imgCheckboxGreyed            = "graphics/checkbox/checkbox.png"
 	imgCheckboxGreyedHovered     = "graphics/checkbox/checkbox.png"
 	imgCheckboxGreyedDisabled    = "graphics/checkbox/checkbox.png"
-	checkboxSpacing              = 10
+	checkboxSpacing              = 5
 )
 
 var (
@@ -55,13 +55,13 @@ type UIResources struct {
 	LabelResources *LabelResources
 }
 
-func NewUIResources() (*UIResources, error) {
-	checkbox, err := loadCheckboxResources()
+func NewUIResources(deviceScale float64) (*UIResources, error) {
+	checkbox, err := loadCheckboxResources(deviceScale)
 	if err != nil {
 		return nil, err
 	}
 
-	fontResources, err := loadFontResources(fontFaceRegular, fontFaceBold, fontFaceIconsRegular, fontFaceIconsSolid)
+	fontResources, err := loadFontResources(deviceScale, fontFaceRegular, fontFaceBold, fontFaceIconsRegular, fontFaceIconsSolid)
 	if err != nil {
 		return nil, err
 	}

@@ -14,37 +14,25 @@ import (
 )
 
 const (
-	headerWidgetHeightPercent = 3
 	sidebarWidgetWidthPercent = 15
 )
 
 type UIHandler struct {
-	ui               *ebitenui.UI
-	uiResources      *res.UIResources
-	screenWidth      int
-	screenHeight     int
-	rootContainer    *widget.Container
-	contentContainer *widget.Container
-	spinnerBox       *spinnerbox.SpinnerBox
-	sidebar          *sidebar.Sidebar
-	logger           *slog.Logger
+	ui            *ebitenui.UI
+	uiResources   *res.UIResources
+	screenWidth   int
+	screenHeight  int
+	deviceScale   float64
+	rootContainer *widget.Container
+	container     *widget.Container
+	spinnerBox    *spinnerbox.SpinnerBox
+	sidebar       *sidebar.Sidebar
+	logger        *slog.Logger
 }
 
-func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler {
-	// all widgets live inside the root container
-	rootContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(1),
-			widget.GridLayoutOpts.Spacing(0, 0),
-			widget.GridLayoutOpts.Stretch(
-				[]bool{true},
-				[]bool{true},
-			),
-		)),
-	)
-
+func NewUIHandler(screenWidth, screenHeight int, deviceScale float64, logger *slog.Logger) *UIHandler {
 	// create the main content container
-	contentContainer := widget.NewContainer(
+	container := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(2),
 			widget.GridLayoutOpts.Spacing(0, 0),
@@ -58,10 +46,9 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		),
 	)
 
-	ui := ebitenui.UI{Container: rootContainer}
-	rootContainer.AddChild(contentContainer)
+	ui := ebitenui.UI{Container: container}
 
-	uiResources, err := res.NewUIResources()
+	uiResources, err := res.NewUIResources(deviceScale)
 	if err != nil {
 		logger.Error("failed to load UI resources", "error", err)
 		return nil
@@ -69,18 +56,22 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 
 	// use primary UI to init the handler to return
 	handler := UIHandler{
-		ui:               &ui,
-		uiResources:      uiResources,
-		screenWidth:      screenWidth,
-		screenHeight:     screenHeight,
-		rootContainer:    rootContainer,
-		contentContainer: contentContainer,
-		sidebar:          sidebar.NewSidebar(screenWidth, sidebarWidgetWidthPercent, uiResources),
-		spinnerBox:       spinnerbox.NewSpinnerBox(uiResources),
-		logger:           logger,
+		ui:           &ui,
+		uiResources:  uiResources,
+		screenWidth:  screenWidth,
+		screenHeight: screenHeight,
+		deviceScale:  deviceScale,
+		container:    container,
+		sidebar: sidebar.NewSidebar(
+			int(float64(screenWidth)*deviceScale),
+			sidebarWidgetWidthPercent,
+			uiResources,
+		),
+		spinnerBox: spinnerbox.NewSpinnerBox(uiResources),
+		logger:     logger,
 	}
-	contentContainer.AddChild(handler.sidebar.GetContainer())
-	contentContainer.AddChild(handler.spinnerBox.GetContainer())
+	container.AddChild(handler.sidebar.GetContainer())
+	container.AddChild(handler.spinnerBox.GetContainer())
 
 	return &handler
 }

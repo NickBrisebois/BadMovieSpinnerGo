@@ -20,11 +20,12 @@ type fontConfig struct {
 	fontSize float64
 }
 
-func loadFont(fontPath string, fontSize float64) (text.Face, error) {
+func loadFont(deviceScale float64, fontPath string, fontSize float64) (text.Face, error) {
 	fontFile, err := assets.Fonts.Open(fontPath)
 	if err != nil {
 		return nil, err
 	}
+	defer fontFile.Close()
 
 	faceSource, err := text.NewGoTextFaceSource(fontFile)
 	if err != nil {
@@ -33,29 +34,30 @@ func loadFont(fontPath string, fontSize float64) (text.Face, error) {
 
 	return &text.GoTextFace{
 		Source: faceSource,
-		Size:   fontSize,
+		Size:   fontSize * deviceScale,
 	}, nil
 }
 
 func loadFontResources(
+	deviceScale float64,
 	faceRegular, faceBold, faceIconsRegular, faceIconsSolid fontConfig,
 ) (*FontResources, error) {
-	regular, err := loadFont(faceRegular.fontPath, faceRegular.fontSize)
+	regular, err := loadFont(deviceScale, faceRegular.fontPath, faceRegular.fontSize)
 	if err != nil {
 		return nil, err
 	}
 
-	bold, err := loadFont(faceBold.fontPath, faceBold.fontSize)
+	bold, err := loadFont(deviceScale, faceBold.fontPath, faceBold.fontSize)
 	if err != nil {
 		return nil, err
 	}
 
-	iconsRegular, err := loadFont(faceIconsRegular.fontPath, faceIconsRegular.fontSize)
+	iconsRegular, err := loadFont(deviceScale, faceIconsRegular.fontPath, faceIconsRegular.fontSize)
 	if err != nil {
 		return nil, err
 	}
 
-	iconsSolid, err := loadFont(faceIconsSolid.fontPath, faceIconsSolid.fontSize)
+	iconsSolid, err := loadFont(deviceScale, faceIconsSolid.fontPath, faceIconsSolid.fontSize)
 	if err != nil {
 		return nil, err
 	}

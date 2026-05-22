@@ -17,6 +17,7 @@ type SpinnerHandler struct {
 	config       *SpinnerConfig
 	screenWidth  int
 	screenHeight int
+	deviceScale  float64
 	drawHandler  *render.DrawHandler
 	uiHandler    *ui.UIHandler
 	movieData    *data.MovieDataHandler
@@ -27,6 +28,7 @@ type SpinnerHandler struct {
 func NewSpinner(
 	config *SpinnerConfig,
 	screenWidth, screenHeight int,
+	deviceScale float64,
 	logger *slog.Logger,
 ) (*SpinnerHandler, error) {
 	apiBaseURL, err := config.ServerURL()
@@ -36,13 +38,14 @@ func NewSpinner(
 	}
 	spinnerAPI := external.NewSpinnerAPI(apiBaseURL, logger)
 	moviesDataHandler := data.NewMovieDataHandler(spinnerAPI, logger)
-	uiHandler := ui.NewUIHandler(screenWidth, screenHeight, logger)
+	uiHandler := ui.NewUIHandler(screenWidth, screenHeight, deviceScale, logger)
 
 	spinnerHandler := &SpinnerHandler{
 		uiHandler:    uiHandler,
 		config:       config,
 		screenWidth:  screenWidth,
 		screenHeight: screenHeight,
+		deviceScale:  deviceScale,
 		movieData:    moviesDataHandler,
 		drawHandler:  nil, // dependent on UI so initialised during first draw
 		logger:       logger,

@@ -19,6 +19,18 @@ type graphicLoadOptions struct {
 	scaleOpts *scaleOpts
 }
 
+func resizeImage(img *ebiten.Image, targetWidth, targetHeight int) *ebiten.Image {
+	scaleX := float64(targetWidth) / float64(img.Bounds().Dx())
+	scaleY := float64(targetHeight) / float64(img.Bounds().Dy())
+	scaledImg := ebiten.NewImage(targetWidth, targetHeight)
+	scaledImgOpts := &ebiten.DrawImageOptions{}
+	scaledImgOpts.GeoM.Scale(scaleX, scaleY)
+	scaledImgOpts.Filter = ebiten.FilterLinear
+
+	scaledImg.DrawImage(img, scaledImgOpts)
+	return scaledImg
+}
+
 func loadGraphic(path string, loadOpts *graphicLoadOptions) (*ebiten.Image, error) {
 	f, err := assets.Graphics.Open(path)
 	if err != nil {
@@ -30,23 +42,20 @@ func loadGraphic(path string, loadOpts *graphicLoadOptions) (*ebiten.Image, erro
 		return nil, err
 	}
 
-	if loadOpts == nil || loadOpts.scaleOpts == nil {
+	if loadOpts == nil {
 		return img, nil
 	}
 
-	// scale larger images to the target size if requested (there's probably a better way to do this?)
-	targetWidth := loadOpts.scaleOpts.targetWidth
-	targetHeight := loadOpts.scaleOpts.targetHeight
+	if loadOpts.scaleOpts != nil {
+		// scale larger images to the target size if requested (there's probably a better way to do this?)
+		img = resizeImage(
+			img,
+			loadOpts.scaleOpts.targetWidth,
+			loadOpts.scaleOpts.targetHeight,
+		)
+	}
 
-	scaleX := float64(targetWidth) / float64(img.Bounds().Dx())
-	scaleY := float64(targetHeight) / float64(img.Bounds().Dy())
-
-	scaledImg := ebiten.NewImage(targetWidth, targetHeight)
-	scaledImgOpts := &ebiten.DrawImageOptions{}
-	scaledImgOpts.GeoM.Scale(scaleX, scaleY)
-	scaledImg.DrawImage(img, scaledImgOpts)
-
-	return scaledImg, nil
+	return img, nil
 }
 
 type CheckboxResources struct {
@@ -54,9 +63,9 @@ type CheckboxResources struct {
 	Spacing int
 }
 
-func loadCheckboxResources() (*CheckboxResources, error) {
-	targetCheckboxWidth := 14
-	targetCheckboxHeight := 14
+func loadCheckboxResources(deviceScale float64) (*CheckboxResources, error) {
+	targetCheckboxWidth := int(float64(14) * deviceScale)
+	targetCheckboxHeight := int(float64(14) * deviceScale)
 	scaleOpts := &scaleOpts{targetWidth: targetCheckboxWidth, targetHeight: targetCheckboxHeight}
 	loadOpts := &graphicLoadOptions{scaleOpts: scaleOpts}
 
@@ -109,6 +118,6 @@ func loadCheckboxResources() (*CheckboxResources, error) {
 			GreyedHovered:     image.NewFixedNineSlice(greyedHoveredImg),
 			GreyedDisabled:    image.NewFixedNineSlice(greyedDisabledImg),
 		},
-		Spacing: checkboxSpacing,
+		Spacing: int(float64(checkboxSpacing) * deviceScale),
 	}, nil
 }
