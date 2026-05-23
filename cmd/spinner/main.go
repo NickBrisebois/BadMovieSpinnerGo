@@ -48,13 +48,11 @@ func main() {
 		return
 	}
 
-	scale := ebiten.Monitor().DeviceScaleFactor()
 	ebiten.SetWindowSize(logicalScreenWidth, logicalScreenHeight)
 	game, err := spinner.NewSpinner(
 		spinnerConfig,
 		logicalScreenWidth,
 		logicalScreenHeight,
-		scale,
 		logger,
 	)
 	if err != nil {
@@ -65,13 +63,11 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetWindowSize(logicalScreenWidth, logicalScreenHeight)
 	ebiten.SetWindowTitle(winTitle)
-	// ebiten.SetScreenClearedEveryFrame(false)
-	// ebiten.SetVsyncEnabled(true)
+	ebiten.SetVsyncEnabled(true)
 
 	runGameOpts := &ebiten.RunGameOptions{}
 	runGameOpts.ScreenTransparent = true
 	runGameOpts.DisableHiDPI = false
-	// runGameOpts.
 	if err := ebiten.RunGameWithOptions(game, runGameOpts); err != nil {
 		log.Fatal(err)
 	}

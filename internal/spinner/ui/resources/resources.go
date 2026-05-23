@@ -43,8 +43,8 @@ var (
 	ThemeHeaderTextColour           = hexToColour(colourWhite)
 	ThemeHeaderAccentColour         = hexToColour(colourLightBronze)
 
-	fontFaceRegular      = fontConfig{fontPath: fontFaceRegularPath, fontSize: 14}
-	fontFaceBold         = fontConfig{fontPath: fontFaceBoldPath, fontSize: 14}
+	fontFaceRegular      = fontConfig{fontPath: fontFaceRegularPath, fontSize: 16}
+	fontFaceBold         = fontConfig{fontPath: fontFaceBoldPath, fontSize: 16}
 	fontFaceIconsRegular = fontConfig{fontPath: fontFaceIconsRegularPath, fontSize: 16}
 	fontFaceIconsSolid   = fontConfig{fontPath: fontFaceIconsSolidPath, fontSize: 16}
 )

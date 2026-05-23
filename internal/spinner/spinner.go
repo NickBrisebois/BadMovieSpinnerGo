@@ -18,9 +18,6 @@ type SpinnerHandler struct {
 
 	logicalScreenWidth  int
 	logicalScreenHeight int
-	deviceScale         float64
-
-	offscreenRenderTarget *ebiten.Image
 
 	drawHandler *render.DrawHandler
 	uiHandler   *ui.UIHandler
@@ -32,7 +29,6 @@ type SpinnerHandler struct {
 func NewSpinner(
 	config *SpinnerConfig,
 	logicalScreenWidth, logicalScreenHeight int,
-	deviceScale float64,
 	logger *slog.Logger,
 ) (*SpinnerHandler, error) {
 	apiBaseURL, err := config.ServerURL()
@@ -49,7 +45,6 @@ func NewSpinner(
 		config:              config,
 		logicalScreenWidth:  logicalScreenWidth,
 		logicalScreenHeight: logicalScreenHeight,
-		deviceScale:         deviceScale,
 		movieData:           moviesDataHandler,
 		drawHandler:         nil, // dependent on UI so initialised during first draw
 		logger:              logger,
@@ -142,46 +137,33 @@ func (s *SpinnerHandler) Update() error {
 func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 	s.uiHandler.DrawUI(screen)
 
-	if !s.initialised {
+	spinnerRect := s.uiHandler.GetSpinnerBoxRect()
+	if !s.initialised && !spinnerRect.Empty() {
 		// The spinner has to be initialised after the first UI draw since
 		// the spinner box widget's dimensions are only calculated during that
-		spinnerRect := s.uiHandler.GetSpinnerBoxRect()
-		if !spinnerRect.Empty() {
-			s.initDrawHandler()
-			s.initialised = true
-		}
+		s.initDrawHandler()
+		s.initialised = true
 		return
 	}
 
 	if s.initialised {
 		// The actual "game" or spinner is drawn to a subimage that's sized to the container provided by the UI handler
-		s.offscreenRenderTarget.Clear()
-		s.drawHandler.Draw(s.offscreenRenderTarget)
-
-		spinnerRect := s.uiHandler.GetSpinnerBoxRect()
-		opts := &ebiten.DrawImageOptions{}
-		scaleX := float64(spinnerRect.Dx()) / float64(s.offscreenRenderTarget.Bounds().Dx())
-		opts.GeoM.Scale(scaleX, scaleX)
-		opts.GeoM.Translate(float64(spinnerRect.Min.X), float64(spinnerRect.Min.Y))
-		opts.Filter = ebiten.FilterLinear
-		screen.DrawImage(s.offscreenRenderTarget, opts)
+		spinnerScreen := screen.SubImage(spinnerRect).(*ebiten.Image)
+		s.drawHandler.Draw(spinnerScreen)
 	}
 }
 
 func (s *SpinnerHandler) Layout(outsideWidth, outsideHeight int) (int, int) {
-	if outsideWidth <= 0 || outsideHeight <= 0 {
-		return 0, 0
+	scale := ebiten.Monitor().DeviceScaleFactor()
+	scaledW := int(float64(outsideWidth) * scale)
+	scaledH := int(float64(outsideHeight) * scale)
+
+	if outsideWidth != s.logicalScreenWidth || outsideHeight != s.logicalScreenHeight {
+		s.logger.Info("Screen resize detected", "width", outsideWidth, "height", outsideHeight)
+		s.uiHandler.SetDimensions(scaledW, scaledH)
 	}
 
 	s.logicalScreenWidth = outsideWidth
 	s.logicalScreenHeight = outsideHeight
-
-	rTarget := s.offscreenRenderTarget
-	if rTarget == nil || rTarget.Bounds().Dx() != outsideWidth || rTarget.Bounds().Dy() != outsideHeight {
-		s.offscreenRenderTarget = ebiten.NewImage(s.logicalScreenWidth, s.logicalScreenHeight)
-	}
-
-	s.uiHandler.SetDimensions(outsideWidth, outsideHeight)
-
-	return s.logicalScreenWidth, s.logicalScreenHeight
+	return scaledW, scaledH
 }
