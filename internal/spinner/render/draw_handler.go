@@ -1,7 +1,6 @@
 package render
 
 import (
-	"image"
 	"image/color"
 	"math"
 
@@ -113,12 +112,12 @@ func (s *DrawHandler) drawSlice(screen *ebiten.Image, slice *data.Slice, centreX
 	screen.DrawTriangles(vertices, indices, slice.DrawProperties.SliceImage, options)
 }
 
-func (s *DrawHandler) Draw(screen *ebiten.Image, spinnerRect image.Rectangle) {
-	width := spinnerRect.Dx()
-	height := spinnerRect.Dy()
+func (s *DrawHandler) Draw(screen *ebiten.Image) {
+	width := screen.Bounds().Dx()
+	height := screen.Bounds().Dy()
 	radius := float32(min(float64(width), float64(height))) / 2
-	centreX := float32(spinnerRect.Min.X) + float32(width/2)
-	centreY := float32(spinnerRect.Min.Y) + float32(height/2)
+	centreX := float32(screen.Bounds().Min.X) + float32(width/2)
+	centreY := float32(screen.Bounds().Min.Y) + float32(height/2)
 
 	for i := range *s.slices {
 		slice := &(*s.slices)[i]

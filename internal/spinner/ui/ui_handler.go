@@ -22,7 +22,6 @@ type UIHandler struct {
 	uiResources   *res.UIResources
 	screenWidth   int
 	screenHeight  int
-	deviceScale   float64
 	rootContainer *widget.Container
 	container     *widget.Container
 	spinnerBox    *spinnerbox.SpinnerBox
@@ -30,7 +29,7 @@ type UIHandler struct {
 	logger        *slog.Logger
 }
 
-func NewUIHandler(screenWidth, screenHeight int, deviceScale float64, logger *slog.Logger) *UIHandler {
+func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler {
 	// create the main content container
 	container := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
@@ -48,7 +47,7 @@ func NewUIHandler(screenWidth, screenHeight int, deviceScale float64, logger *sl
 
 	ui := ebitenui.UI{Container: container}
 
-	uiResources, err := res.NewUIResources(deviceScale)
+	uiResources, err := res.NewUIResources()
 	if err != nil {
 		logger.Error("failed to load UI resources", "error", err)
 		return nil
@@ -60,10 +59,9 @@ func NewUIHandler(screenWidth, screenHeight int, deviceScale float64, logger *sl
 		uiResources:  uiResources,
 		screenWidth:  screenWidth,
 		screenHeight: screenHeight,
-		deviceScale:  deviceScale,
 		container:    container,
 		sidebar: sidebar.NewSidebar(
-			int(float64(screenWidth)*deviceScale),
+			screenWidth,
 			sidebarWidgetWidthPercent,
 			uiResources,
 		),

@@ -13,21 +13,25 @@ import (
 )
 
 type SpinnerHandler struct {
-	initialised  bool
-	config       *SpinnerConfig
-	screenWidth  int
-	screenHeight int
-	deviceScale  float64
-	drawHandler  *render.DrawHandler
-	uiHandler    *ui.UIHandler
-	movieData    *data.MovieDataHandler
-	wheel        *data.Wheel
-	logger       *slog.Logger
+	initialised bool
+	config      *SpinnerConfig
+
+	logicalScreenWidth  int
+	logicalScreenHeight int
+	deviceScale         float64
+
+	offscreenRenderTarget *ebiten.Image
+
+	drawHandler *render.DrawHandler
+	uiHandler   *ui.UIHandler
+	movieData   *data.MovieDataHandler
+	wheel       *data.Wheel
+	logger      *slog.Logger
 }
 
 func NewSpinner(
 	config *SpinnerConfig,
-	screenWidth, screenHeight int,
+	logicalScreenWidth, logicalScreenHeight int,
 	deviceScale float64,
 	logger *slog.Logger,
 ) (*SpinnerHandler, error) {
@@ -38,17 +42,17 @@ func NewSpinner(
 	}
 	spinnerAPI := external.NewSpinnerAPI(apiBaseURL, logger)
 	moviesDataHandler := data.NewMovieDataHandler(spinnerAPI, logger)
-	uiHandler := ui.NewUIHandler(screenWidth, screenHeight, deviceScale, logger)
+	uiHandler := ui.NewUIHandler(logicalScreenWidth, logicalScreenHeight, logger)
 
 	spinnerHandler := &SpinnerHandler{
-		uiHandler:    uiHandler,
-		config:       config,
-		screenWidth:  screenWidth,
-		screenHeight: screenHeight,
-		deviceScale:  deviceScale,
-		movieData:    moviesDataHandler,
-		drawHandler:  nil, // dependent on UI so initialised during first draw
-		logger:       logger,
+		uiHandler:           uiHandler,
+		config:              config,
+		logicalScreenWidth:  logicalScreenWidth,
+		logicalScreenHeight: logicalScreenHeight,
+		deviceScale:         deviceScale,
+		movieData:           moviesDataHandler,
+		drawHandler:         nil, // dependent on UI so initialised during first draw
+		logger:              logger,
 	}
 
 	moviesBySuggestedBy := moviesDataHandler.GetMoviesBySuggestedBy(nil)
@@ -136,30 +140,48 @@ func (s *SpinnerHandler) Update() error {
 }
 
 func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
-	spinnerRect := s.uiHandler.GetSpinnerBoxRect()
+	s.uiHandler.DrawUI(screen)
 
-	if !s.initialised && !spinnerRect.Empty() {
+	if !s.initialised {
 		// The spinner has to be initialised after the first UI draw since
 		// the spinner box widget's dimensions are only calculated during that
-		s.initDrawHandler()
-		s.initialised = true
+		spinnerRect := s.uiHandler.GetSpinnerBoxRect()
+		if !spinnerRect.Empty() {
+			s.initDrawHandler()
+			s.initialised = true
+		}
+		return
 	}
-
-	s.uiHandler.DrawUI(screen)
 
 	if s.initialised {
 		// The actual "game" or spinner is drawn to a subimage that's sized to the container provided by the UI handler
-		spinnerScreen := screen.SubImage(spinnerRect).(*ebiten.Image)
-		s.drawHandler.Draw(spinnerScreen, spinnerRect)
+		s.offscreenRenderTarget.Clear()
+		s.drawHandler.Draw(s.offscreenRenderTarget)
+
+		spinnerRect := s.uiHandler.GetSpinnerBoxRect()
+		opts := &ebiten.DrawImageOptions{}
+		scaleX := float64(spinnerRect.Dx()) / float64(s.offscreenRenderTarget.Bounds().Dx())
+		opts.GeoM.Scale(scaleX, scaleX)
+		opts.GeoM.Translate(float64(spinnerRect.Min.X), float64(spinnerRect.Min.Y))
+		opts.Filter = ebiten.FilterLinear
+		screen.DrawImage(s.offscreenRenderTarget, opts)
 	}
 }
 
 func (s *SpinnerHandler) Layout(outsideWidth, outsideHeight int) (int, int) {
-	if outsideWidth != s.screenWidth || outsideHeight != s.screenHeight {
-		s.logger.Info("Screen resize detected", "width", outsideWidth, "height", outsideHeight)
-		s.uiHandler.SetDimensions(outsideWidth, outsideHeight)
+	if outsideWidth <= 0 || outsideHeight <= 0 {
+		return 0, 0
 	}
-	s.screenHeight = outsideHeight
-	s.screenWidth = outsideWidth
-	return s.screenWidth, s.screenHeight
+
+	s.logicalScreenWidth = outsideWidth
+	s.logicalScreenHeight = outsideHeight
+
+	rTarget := s.offscreenRenderTarget
+	if rTarget == nil || rTarget.Bounds().Dx() != outsideWidth || rTarget.Bounds().Dy() != outsideHeight {
+		s.offscreenRenderTarget = ebiten.NewImage(s.logicalScreenWidth, s.logicalScreenHeight)
+	}
+
+	s.uiHandler.SetDimensions(outsideWidth, outsideHeight)
+
+	return s.logicalScreenWidth, s.logicalScreenHeight
 }

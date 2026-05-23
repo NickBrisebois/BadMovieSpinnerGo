@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	initScreenWidth  = 1200
-	initScreenHeight = 600
+	logicalScreenWidth  = 1200
+	logicalScreenHeight = 600
 
 	winTitle = "Bad Movie Spinner"
 	binName  = "moviespinner"
@@ -49,11 +49,11 @@ func main() {
 	}
 
 	scale := ebiten.Monitor().DeviceScaleFactor()
-	ebiten.SetWindowSize(int(float64(initScreenWidth)*scale), int(float64(initScreenHeight)*scale))
+	ebiten.SetWindowSize(logicalScreenWidth, logicalScreenHeight)
 	game, err := spinner.NewSpinner(
 		spinnerConfig,
-		initScreenWidth,
-		initScreenHeight,
+		logicalScreenWidth,
+		logicalScreenHeight,
 		scale,
 		logger,
 	)
@@ -63,12 +63,16 @@ func main() {
 	}
 
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	ebiten.SetWindowSize(initScreenWidth, initScreenHeight)
+	ebiten.SetWindowSize(logicalScreenWidth, logicalScreenHeight)
 	ebiten.SetWindowTitle(winTitle)
-	ebiten.SetScreenClearedEveryFrame(false)
-	ebiten.SetVsyncEnabled(true)
+	// ebiten.SetScreenClearedEveryFrame(false)
+	// ebiten.SetVsyncEnabled(true)
 
-	if err := ebiten.RunGame(game); err != nil {
+	runGameOpts := &ebiten.RunGameOptions{}
+	runGameOpts.ScreenTransparent = true
+	runGameOpts.DisableHiDPI = false
+	// runGameOpts.
+	if err := ebiten.RunGameWithOptions(game, runGameOpts); err != nil {
 		log.Fatal(err)
 	}
 }

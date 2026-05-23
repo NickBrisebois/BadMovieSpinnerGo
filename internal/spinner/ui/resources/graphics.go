@@ -63,9 +63,9 @@ type CheckboxResources struct {
 	Spacing int
 }
 
-func loadCheckboxResources(deviceScale float64) (*CheckboxResources, error) {
-	targetCheckboxWidth := int(float64(14) * deviceScale)
-	targetCheckboxHeight := int(float64(14) * deviceScale)
+func loadCheckboxResources() (*CheckboxResources, error) {
+	targetCheckboxWidth := 14
+	targetCheckboxHeight := 14
 	scaleOpts := &scaleOpts{targetWidth: targetCheckboxWidth, targetHeight: targetCheckboxHeight}
 	loadOpts := &graphicLoadOptions{scaleOpts: scaleOpts}
 
@@ -118,6 +118,6 @@ func loadCheckboxResources(deviceScale float64) (*CheckboxResources, error) {
 			GreyedHovered:     image.NewFixedNineSlice(greyedHoveredImg),
 			GreyedDisabled:    image.NewFixedNineSlice(greyedDisabledImg),
 		},
-		Spacing: int(float64(checkboxSpacing) * deviceScale),
+		Spacing: checkboxSpacing,
 	}, nil
 }

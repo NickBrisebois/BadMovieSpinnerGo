@@ -47,10 +47,6 @@ func NewSidebar(screenWidth int, widthPercent int, uiResources *res.UIResources)
 	}
 }
 
-func (s *Sidebar) GetSidebarWidth() int {
-	return int(swidgetutils.CalculatePercentOf(s.screenWidth, s.widthPercent))
-}
-
 func (s *Sidebar) GetContainer() *widget.Container {
 	return s.container
 }

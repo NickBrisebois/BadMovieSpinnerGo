@@ -55,13 +55,13 @@ type UIResources struct {
 	LabelResources *LabelResources
 }
 
-func NewUIResources(deviceScale float64) (*UIResources, error) {
-	checkbox, err := loadCheckboxResources(deviceScale)
+func NewUIResources() (*UIResources, error) {
+	checkbox, err := loadCheckboxResources()
 	if err != nil {
 		return nil, err
 	}
 
-	fontResources, err := loadFontResources(deviceScale, fontFaceRegular, fontFaceBold, fontFaceIconsRegular, fontFaceIconsSolid)
+	fontResources, err := loadFontResources(fontFaceRegular, fontFaceBold, fontFaceIconsRegular, fontFaceIconsSolid)
 	if err != nil {
 		return nil, err
 	}
