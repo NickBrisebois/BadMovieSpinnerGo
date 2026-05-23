@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
@@ -34,7 +35,7 @@ func loadFont(fontPath string, fontSize float64) (text.Face, error) {
 
 	return &text.GoTextFace{
 		Source: faceSource,
-		Size:   fontSize,
+		Size:   (fontSize * ebiten.Monitor().DeviceScaleFactor()),
 	}, nil
 }
 
