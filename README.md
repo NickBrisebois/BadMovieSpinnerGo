@@ -1,6 +1,8 @@
-# Bad Movie Spinner (Go Edition)
+![Bad Movie Spinner](.img/spinner.png)
 
-A purely Go implementation of a (bad) movie spinner with data pulled from Google Sheets and TheMovieDatabase (TMDB). The frontend spinner application can be exported to either Linux/Desktop or web when built to target WASM
+# [Bad] Movie Spinner (Go Edition)
+
+A purely Go implementation of a [bad] movie spinner with data pulled from Google Sheets and TheMovieDatabase (TMDB). The frontend spinner application can be exported to either Linux/Desktop or web when built to target WASM
 
 There are three main components to the project:
 
@@ -10,16 +12,24 @@ There are three main components to the project:
 
 Each component has its own build target in the Makefile
 
+# Movie List / Google Sheet
+
+The initial goal of this project is to read from a Google Sheet but that should eventually should be replaced with a database or something similar. For now, to run this project you'll need a Google Sheet setup with the correct schema. Feel free to clone this sheet to get started: https://docs.google.com/spreadsheets/d/1ZW5ImWp-GywTHFFWwh_XqIhzjxoPA349qlfiBwL2RS4/edit?usp=sharing 
+
 ## Configuration
 
 Configuration for both API and Spinner is primarily done via environment variables, however, for web binaries configuration is done by injecting values during build
 
 ### API required variables:
+See: [config.go](internal/api/config.go)
 ```
 SERVER_HOST=localhost
 SERVER_PORT=8080
+ALLOWED_ORIGINS=http://localhost,localhost:8000,example.com,etc.com
 
 # gcpserviceaccountkey.json needed for accessing private google sheets
+# see: https://docs.cloud.google.com/iam/docs/keys-create-delete
+# You need to create a new key that has access to your Google Sheet
 GOOGLE_SERVICE_ACCOUNT_KEY_PATH=./gcpserviceaccountkey.json
 GOOGLE_SHEET_ID=1UASDBDSFSDFSDF_etcetcetc
 GOOGLE_SCOPES=https://www.googleapis.com/auth/spreadsheets,https://www.googleapis.com/auth/drive.file
@@ -32,6 +42,7 @@ IMAGE_CACHE_DIR=cache
 
 
 ### Spinner (Desktop/Linux) required variables:
+See: [config.go](internal/spinner/config.go)
 ```
 # Server details for connecting to backend API
 SERVER_HOST=localhost
@@ -39,6 +50,8 @@ SERVER_PORT=8080
 ```
 
 ### Spinner (Web/WASM) required variables:
+See: [spinner/config.go](internal/spinner/config.go)
+See: [web/config.go](internal/web/config.go)
 ```
 # Host and Port details for hosting frontend web server containing WASM spinner
 WEB_HOST=localhost
