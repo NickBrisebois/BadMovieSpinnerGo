@@ -30,18 +30,30 @@ const (
 	imgCheckboxGreyedHovered     = "graphics/checkbox/checkbox.png"
 	imgCheckboxGreyedDisabled    = "graphics/checkbox/checkbox.png"
 	checkboxSpacing              = 5
+
+	imgSpinButtonIdle    = "graphics/spin_button/unpressed.png"
+	imgSpinButtonHover   = "graphics/spin_button/unpressed_hover.png"
+	imgSpinButtonPressed = "graphics/spin_button/pressed.png"
 )
 
 var (
-	ThemeBGColour                   = hexToColour(colourDuskBlue)
+	ThemeBGColour = hexToColour(colourDuskBlue)
+
 	ThemeSidebarBGColour            = hexToColour(colourDustyLavender)
 	ThemeSidebarLabelIdleColour     = hexToColour(colourWhite)
 	ThemeSidebarLabelDisabledColour = hexToColour(colourLightBronze)
-	ThemeHeaderBGColour             = hexToColour(colourRosewood)
-	ThemeBodyAccentColour           = hexToColour(colourRosewood)
-	ThemeBodyTextColour             = hexToColour(colourWhite)
-	ThemeHeaderTextColour           = hexToColour(colourWhite)
-	ThemeHeaderAccentColour         = hexToColour(colourLightBronze)
+
+	ThemeHeaderBGColour = hexToColour(colourRosewood)
+
+	ThemeBodyAccentColour = hexToColour(colourRosewood)
+	ThemeBodyTextColour   = hexToColour(colourWhite)
+
+	ThemeHeaderTextColour   = hexToColour(colourWhite)
+	ThemeHeaderAccentColour = hexToColour(colourLightBronze)
+
+	ThemeSpinButtonTextColourIdle    = hexToColour(colourWhite)
+	ThemeSpinButtonTextColourHover   = hexToColour(colourLightBronze)
+	ThemeSpinButtonTextColourPressed = hexToColour(colourDuskBlue)
 
 	fontFaceRegular      = fontConfig{fontPath: fontFaceRegularPath, fontSize: 16}
 	fontFaceBold         = fontConfig{fontPath: fontFaceBoldPath, fontSize: 16}
@@ -50,9 +62,10 @@ var (
 )
 
 type UIResources struct {
-	Fonts          *FontResources
-	Checkbox       *CheckboxResources
-	LabelResources *LabelResources
+	Fonts               *FontResources
+	Checkbox            *CheckboxResources
+	LabelResources      *LabelResources
+	SpinButtonResources *ButtonResources
 }
 
 func NewUIResources() (*UIResources, error) {
@@ -74,10 +87,21 @@ func NewUIResources() (*UIResources, error) {
 		fontResources.FaceRegular,
 	)
 
+	spinButtonResources, err := loadButtonResources(
+		imgSpinButtonIdle, imgSpinButtonHover, imgSpinButtonPressed,
+		ThemeSidebarLabelIdleColour, ThemeSidebarLabelIdleColour, ThemeSidebarLabelIdleColour,
+		fontResources.FaceRegular,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &UIResources{
-		Fonts:          fontResources,
-		LabelResources: labelResources,
-		Checkbox:       checkbox,
+		Fonts:               fontResources,
+		LabelResources:      labelResources,
+		Checkbox:            checkbox,
+		SpinButtonResources: spinButtonResources,
 	}, nil
 }
 

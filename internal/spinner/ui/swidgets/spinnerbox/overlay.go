@@ -14,15 +14,37 @@ type SpinnerOverlay struct {
 }
 
 func NewSpinnerOverlay(uiResources *res.UIResources) *SpinnerOverlay {
-	// overlayRootContainer := widget.NewContainer(
-	// 	// widget.ContainerOpts.Layout(
-	// 	// )
-	// )
+	overlayRootContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
 
 	spinnerOverlay := &SpinnerOverlay{
 		uiResources: uiResources,
-		container:   widget.NewContainer(),
+		container:   overlayRootContainer,
 	}
 
+	spinnerOverlay.addSpinButton()
+
 	return spinnerOverlay
+}
+
+func (s *SpinnerOverlay) GetContainer() *widget.Container {
+	return s.container
+}
+
+func (s *SpinnerOverlay) addSpinButton() {
+	button := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+		),
+		widget.ButtonOpts.Image(s.uiResources.SpinButtonResources.Image),
+		widget.ButtonOpts.Text("Spin", s.uiResources.SpinButtonResources.Face, s.uiResources.SpinButtonResources.Text),
+		widget.ButtonOpts.TextPadding(s.uiResources.SpinButtonResources.Padding),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {}),
+	)
+
+	s.container.AddChild(button)
 }

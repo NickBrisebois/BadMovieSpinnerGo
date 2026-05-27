@@ -135,8 +135,6 @@ func (s *SpinnerHandler) Update() error {
 }
 
 func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
-	s.uiHandler.DrawUI(screen)
-
 	spinnerRect := s.uiHandler.GetSpinnerBoxRect()
 	if !s.initialised && !spinnerRect.Empty() {
 		// The spinner has to be initialised after the first UI draw since
@@ -151,6 +149,8 @@ func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 		spinnerScreen := screen.SubImage(spinnerRect).(*ebiten.Image)
 		s.drawHandler.Draw(spinnerScreen)
 	}
+
+	s.uiHandler.DrawUI(screen)
 }
 
 func (s *SpinnerHandler) Layout(outsideWidth, outsideHeight int) (int, int) {

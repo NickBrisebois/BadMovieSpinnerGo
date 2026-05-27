@@ -22,6 +22,10 @@ func NewSpinnerBox(uiResources *res.UIResources) *SpinnerBox {
 			),
 		),
 	)
+
+	overlay := NewSpinnerOverlay(uiResources)
+	spinnerRootContainer.AddChild(overlay.GetContainer())
+
 	return &SpinnerBox{
 		container:   spinnerRootContainer,
 		uiResources: uiResources,

@@ -18,15 +18,16 @@ const (
 )
 
 type UIHandler struct {
-	ui            *ebitenui.UI
-	uiResources   *res.UIResources
-	screenWidth   int
-	screenHeight  int
-	rootContainer *widget.Container
-	container     *widget.Container
-	spinnerBox    *spinnerbox.SpinnerBox
-	sidebar       *sidebar.Sidebar
-	logger        *slog.Logger
+	ui             *ebitenui.UI
+	uiResources    *res.UIResources
+	screenWidth    int
+	screenHeight   int
+	rootContainer  *widget.Container
+	container      *widget.Container
+	spinnerBox     *spinnerbox.SpinnerBox
+	spinnerOverlay *spinnerbox.SpinnerOverlay
+	sidebar        *sidebar.Sidebar
+	logger         *slog.Logger
 }
 
 func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler {
@@ -53,7 +54,6 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		return nil
 	}
 
-	// use primary UI to init the handler to return
 	handler := UIHandler{
 		ui:           &ui,
 		uiResources:  uiResources,
@@ -65,8 +65,9 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 			sidebarWidgetWidthPercent,
 			uiResources,
 		),
-		spinnerBox: spinnerbox.NewSpinnerBox(uiResources),
-		logger:     logger,
+		spinnerBox:     spinnerbox.NewSpinnerBox(uiResources),
+		spinnerOverlay: spinnerbox.NewSpinnerOverlay(uiResources),
+		logger:         logger,
 	}
 	container.AddChild(handler.sidebar.GetContainer())
 	container.AddChild(handler.spinnerBox.GetContainer())
@@ -94,8 +95,4 @@ func (u *UIHandler) Update() error {
 
 func (u *UIHandler) DrawUI(screen *ebiten.Image) {
 	u.ui.Draw(screen)
-}
-
-func (u *UIHandler) DrawSpinnerOverlay(screen *ebiten.Image) {
-
 }

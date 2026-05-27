@@ -2,11 +2,13 @@ package res
 
 import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources/assets"
+	"image/color"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type scaleOpts struct {
@@ -17,18 +19,6 @@ type scaleOpts struct {
 type graphicLoadOptions struct {
 	// scale image being loaded before returning it to specified dimensions
 	scaleOpts *scaleOpts
-}
-
-func resizeImage(img *ebiten.Image, targetWidth, targetHeight int) *ebiten.Image {
-	scaleX := float64(targetWidth) / float64(img.Bounds().Dx())
-	scaleY := float64(targetHeight) / float64(img.Bounds().Dy())
-	scaledImg := ebiten.NewImage(targetWidth, targetHeight)
-	scaledImgOpts := &ebiten.DrawImageOptions{}
-	scaledImgOpts.GeoM.Scale(scaleX, scaleY)
-	scaledImgOpts.Filter = ebiten.FilterLinear
-
-	scaledImg.DrawImage(img, scaledImgOpts)
-	return scaledImg
 }
 
 func loadGraphic(path string, loadOpts *graphicLoadOptions) (*ebiten.Image, error) {
@@ -64,8 +54,8 @@ type CheckboxResources struct {
 }
 
 func loadCheckboxResources() (*CheckboxResources, error) {
-	targetCheckboxWidth := 14
-	targetCheckboxHeight := 14
+	targetCheckboxWidth := applyIntDeviceScale(14)
+	targetCheckboxHeight := applyIntDeviceScale(14)
 	scaleOpts := &scaleOpts{targetWidth: targetCheckboxWidth, targetHeight: targetCheckboxHeight}
 	loadOpts := &graphicLoadOptions{scaleOpts: scaleOpts}
 
@@ -119,5 +109,54 @@ func loadCheckboxResources() (*CheckboxResources, error) {
 			GreyedDisabled:    image.NewFixedNineSlice(greyedDisabledImg),
 		},
 		Spacing: checkboxSpacing,
+	}, nil
+}
+
+type ButtonResources struct {
+	Image   *widget.ButtonImage
+	Text    *widget.ButtonTextColor
+	Face    *text.Face
+	Padding *widget.Insets
+}
+
+func loadButtonResources(
+	idleImgPath, hoverImgPath, pressedImgPath string,
+	idleTextColour, hoverTextColour, pressedTextColour color.Color,
+	fontFace *text.Face,
+	padding *widget.Insets,
+) (*ButtonResources, error) {
+	loadOpts := &graphicLoadOptions{}
+	loadOpts.scaleOpts = &scaleOpts{
+		targetWidth:  150,
+		targetHeight: 150,
+	}
+	buttonImgIdle, err := loadGraphic(idleImgPath, loadOpts)
+	if err != nil {
+		return nil, err
+	}
+	buttonImgHover, err := loadGraphic(hoverImgPath, loadOpts)
+	if err != nil {
+		return nil, err
+	}
+	buttonImgPressed, err := loadGraphic(pressedImgPath, loadOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	button := &widget.ButtonImage{
+		Idle:    image.NewFixedNineSlice(buttonImgIdle),
+		Hover:   image.NewFixedNineSlice(buttonImgHover),
+		Pressed: image.NewFixedNineSlice(buttonImgPressed),
+	}
+
+	return &ButtonResources{
+		Image: button,
+		Text: &widget.ButtonTextColor{
+			Idle:     idleTextColour,
+			Hover:    hoverTextColour,
+			Disabled: pressedTextColour,
+		},
+		Face:    fontFace,
+		Padding: padding,
 	}, nil
 }
