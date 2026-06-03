@@ -2,7 +2,6 @@ package sidebar
 
 import (
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
-	swidgetutils "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/utils"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"maps"
 	"slices"
@@ -11,16 +10,27 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-type Sidebar struct {
-	screenWidth  int
-	widthPercent int // width as a percentage of the screen width (eg. a value of 50 == 50% of screenWidth)
-	uiResources  *res.UIResources
-	container    *widget.Container
-	movies       *map[string][]models.MovieMeta
+type SidebarInputType int
+
+const (
+	SidebarInputTypeSuggestedBy SidebarInputType = iota
+)
+
+type SidebarInputCallbackData struct {
+	InputType      SidebarInputType
+	SuggestedUsers *[]string
 }
 
-func NewSidebar(screenWidth int, widthPercent int, uiResources *res.UIResources) *Sidebar {
-	sidebarWidth := swidgetutils.CalculatePercentOf(screenWidth, widthPercent)
+type SidebarInputCallback func(data *SidebarInputCallbackData)
+
+type Sidebar struct {
+	uiResources   *res.UIResources
+	container     *widget.Container
+	movies        *map[string][]models.MovieMeta
+	inputCallback SidebarInputCallback
+}
+
+func NewSidebar(width int, uiResources *res.UIResources, inputCallback SidebarInputCallback) *Sidebar {
 	sidebarContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(
 			image.NewNineSliceColor(res.ThemeSidebarBGColour),
@@ -35,15 +45,14 @@ func NewSidebar(screenWidth int, widthPercent int, uiResources *res.UIResources)
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
 			}),
-			widget.WidgetOpts.MinSize(int(sidebarWidth), 0),
+			widget.WidgetOpts.MinSize(width, 0),
 		),
 	)
 
 	return &Sidebar{
-		screenWidth:  screenWidth,
-		widthPercent: widthPercent,
-		container:    sidebarContainer,
-		uiResources:  uiResources,
+		container:     sidebarContainer,
+		uiResources:   uiResources,
+		inputCallback: inputCallback,
 	}
 }
 
@@ -51,11 +60,20 @@ func (s *Sidebar) GetContainer() *widget.Container {
 	return s.container
 }
 
+func (s *Sidebar) toggleListCallback(toggled []string, args *widget.CheckboxChangedEventArgs) {
+}
+
 func (s *Sidebar) SetMovies(movies *map[string][]models.MovieMeta) {
 	s.movies = movies
 	suggestedByToggles := NewSuggestedByToggle(
 		slices.Collect(maps.Keys(*movies)),
 		s.uiResources,
+		func(toggled []string, args *widget.CheckboxChangedEventArgs) {
+			s.inputCallback(&SidebarInputCallbackData{
+				InputType:      SidebarInputTypeSuggestedBy,
+				SuggestedUsers: &toggled,
+			})
+		},
 	)
 	s.container.AddChild(suggestedByToggles.GetContainer())
 }

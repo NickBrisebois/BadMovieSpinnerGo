@@ -42,6 +42,7 @@ var (
 	ThemeSidebarBGColour            = hexToColour(colourDustyLavender)
 	ThemeSidebarLabelIdleColour     = hexToColour(colourWhite)
 	ThemeSidebarLabelDisabledColour = hexToColour(colourLightBronze)
+	ThemeSidebarWidth               = 20
 
 	ThemeHeaderBGColour = hexToColour(colourRosewood)
 

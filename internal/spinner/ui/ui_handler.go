@@ -4,6 +4,7 @@ import (
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/sidebar"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/spinnerbox"
+	swidgetutils "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/utils"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"image"
 	"log/slog"
@@ -11,10 +12,6 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
-)
-
-const (
-	sidebarWidgetWidthPercent = 15
 )
 
 type UIHandler struct {
@@ -55,20 +52,21 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 	}
 
 	handler := UIHandler{
-		ui:           &ui,
-		uiResources:  uiResources,
-		screenWidth:  screenWidth,
-		screenHeight: screenHeight,
-		container:    container,
-		sidebar: sidebar.NewSidebar(
-			screenWidth,
-			sidebarWidgetWidthPercent,
-			uiResources,
-		),
+		ui:             &ui,
+		uiResources:    uiResources,
+		screenWidth:    screenWidth,
+		screenHeight:   screenHeight,
+		container:      container,
+		sidebar:        nil,
 		spinnerBox:     spinnerbox.NewSpinnerBox(uiResources),
 		spinnerOverlay: spinnerbox.NewSpinnerOverlay(uiResources),
 		logger:         logger,
 	}
+	handler.sidebar = sidebar.NewSidebar(
+		int(swidgetutils.CalculatePercentOf(screenWidth, res.ThemeSidebarWidth)),
+		uiResources,
+		handler.sidebarInteractionCallback,
+	)
 	container.AddChild(handler.sidebar.GetContainer())
 	container.AddChild(handler.spinnerBox.GetContainer())
 
@@ -95,4 +93,8 @@ func (u *UIHandler) Update() error {
 
 func (u *UIHandler) DrawUI(screen *ebiten.Image) {
 	u.ui.Draw(screen)
+}
+
+func (u *UIHandler) sidebarInteractionCallback(data *sidebar.SidebarInputCallbackData) {
+	u.logger.Info("widget interaction callback", "inputType", data.InputType, "suggestedUsers", data.SuggestedUsers)
 }

@@ -3,6 +3,7 @@ module NickBrisebois/BadMovieSpinnerGo
 go 1.26.1
 
 require (
+	github.com/ebitenui/ebitenui v0.7.3
 	github.com/hajimehoshi/ebiten/v2 v2.9.9
 	github.com/swaggo/swag v1.16.6
 	google.golang.org/api v0.276.0
@@ -28,7 +29,6 @@ require (
 	github.com/ebitengine/gomobile v0.0.0-20250923094054-ea854a63cce1 // indirect
 	github.com/ebitengine/hideconsole v1.0.0 // indirect
 	github.com/ebitengine/purego v0.9.0 // indirect
-	github.com/ebitenui/ebitenui v0.7.3 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/frustra/bbcode v0.0.0-20201127003707-6ef347fbe1c8 // indirect
