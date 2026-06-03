@@ -60,9 +60,6 @@ func (s *Sidebar) GetContainer() *widget.Container {
 	return s.container
 }
 
-func (s *Sidebar) toggleListCallback(toggled []string, args *widget.CheckboxChangedEventArgs) {
-}
-
 func (s *Sidebar) SetMovies(movies *map[string][]models.MovieMeta) {
 	s.movies = movies
 	suggestedByToggles := NewSuggestedByToggle(

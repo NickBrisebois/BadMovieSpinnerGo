@@ -31,6 +31,15 @@ func NewSpinner(
 	logicalScreenWidth, logicalScreenHeight int,
 	logger *slog.Logger,
 ) (*SpinnerHandler, error) {
+	spinnerHandler := &SpinnerHandler{
+		uiHandler:           nil,
+		config:              config,
+		logicalScreenWidth:  logicalScreenWidth,
+		logicalScreenHeight: logicalScreenHeight,
+		movieData:           nil,
+		drawHandler:         nil, // dependent on UI so initialised during first draw
+		logger:              logger,
+	}
 	apiBaseURL, err := config.ServerURL()
 	if err != nil {
 		logger.Error("failed to parse API server URL", "error", err)
@@ -38,22 +47,21 @@ func NewSpinner(
 	}
 	spinnerAPI := external.NewSpinnerAPI(apiBaseURL, logger)
 	moviesDataHandler := data.NewMovieDataHandler(spinnerAPI, logger)
-	uiHandler := ui.NewUIHandler(logicalScreenWidth, logicalScreenHeight, logger)
-
-	spinnerHandler := &SpinnerHandler{
-		uiHandler:           uiHandler,
-		config:              config,
-		logicalScreenWidth:  logicalScreenWidth,
-		logicalScreenHeight: logicalScreenHeight,
-		movieData:           moviesDataHandler,
-		drawHandler:         nil, // dependent on UI so initialised during first draw
-		logger:              logger,
-	}
+	spinnerHandler.movieData = moviesDataHandler
+	spinnerHandler.uiHandler = ui.NewUIHandler(logicalScreenWidth, logicalScreenHeight, logger, spinnerHandler.uiEventCallback)
 
 	moviesBySuggestedBy := moviesDataHandler.GetMoviesBySuggestedBy(nil)
 	spinnerHandler.uiHandler.SetMovies(&moviesBySuggestedBy)
 
 	return spinnerHandler, nil
+}
+
+func (s *SpinnerHandler) uiEventCallback(data *ui.UIEventCallbackData) {
+	switch data.EventType {
+	case ui.UIIEventTypeSuggestedByChanged:
+		s.logger.Info("suggested by changed", "suggestedBy", data.SuggestedUsers)
+	default:
+	}
 }
 
 func (s *SpinnerHandler) initDrawHandler() {

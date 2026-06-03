@@ -14,6 +14,19 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type UIEventType int
+
+const (
+	UIIEventTypeSuggestedByChanged UIEventType = iota
+)
+
+type UIEventCallbackData struct {
+	EventType      UIEventType
+	SuggestedUsers *[]string
+}
+
+type UIEventCallback func(data *UIEventCallbackData)
+
 type UIHandler struct {
 	ui             *ebitenui.UI
 	uiResources    *res.UIResources
@@ -25,9 +38,10 @@ type UIHandler struct {
 	spinnerOverlay *spinnerbox.SpinnerOverlay
 	sidebar        *sidebar.Sidebar
 	logger         *slog.Logger
+	eventCallback  UIEventCallback
 }
 
-func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler {
+func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger, eventCallback UIEventCallback) *UIHandler {
 	// create the main content container
 	container := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
@@ -61,11 +75,16 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger) *UIHandler
 		spinnerBox:     spinnerbox.NewSpinnerBox(uiResources),
 		spinnerOverlay: spinnerbox.NewSpinnerOverlay(uiResources),
 		logger:         logger,
+		eventCallback:  eventCallback,
 	}
 	handler.sidebar = sidebar.NewSidebar(
 		int(swidgetutils.CalculatePercentOf(screenWidth, res.ThemeSidebarWidth)),
 		uiResources,
-		handler.sidebarInteractionCallback,
+		func(data *sidebar.SidebarInputCallbackData) {
+			handler.logger.Info("widget interaction callback", "inputType", data.InputType, "suggestedUsers", data.SuggestedUsers)
+			uiEventData := UIEventCallbackData{EventType: UIIEventTypeSuggestedByChanged, SuggestedUsers: data.SuggestedUsers}
+			handler.eventCallback(&uiEventData)
+		},
 	)
 	container.AddChild(handler.sidebar.GetContainer())
 	container.AddChild(handler.spinnerBox.GetContainer())
@@ -93,8 +112,4 @@ func (u *UIHandler) Update() error {
 
 func (u *UIHandler) DrawUI(screen *ebiten.Image) {
 	u.ui.Draw(screen)
-}
-
-func (u *UIHandler) sidebarInteractionCallback(data *sidebar.SidebarInputCallbackData) {
-	u.logger.Info("widget interaction callback", "inputType", data.InputType, "suggestedUsers", data.SuggestedUsers)
 }
