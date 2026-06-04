@@ -18,7 +18,7 @@ const (
 
 type SidebarInputCallbackData struct {
 	InputType      SidebarInputType
-	SuggestedUsers *[]string
+	SuggestedUsers *[]models.PersonName
 }
 
 type SidebarInputCallback func(data *SidebarInputCallbackData)
@@ -26,7 +26,7 @@ type SidebarInputCallback func(data *SidebarInputCallbackData)
 type Sidebar struct {
 	uiResources   *res.UIResources
 	container     *widget.Container
-	movies        *map[string][]models.MovieMeta
+	movies        *map[models.PersonName][]models.MovieMeta
 	inputCallback SidebarInputCallback
 }
 
@@ -60,12 +60,12 @@ func (s *Sidebar) GetContainer() *widget.Container {
 	return s.container
 }
 
-func (s *Sidebar) SetMovies(movies *map[string][]models.MovieMeta) {
+func (s *Sidebar) SetMovies(movies *map[models.PersonName][]models.MovieMeta) {
 	s.movies = movies
 	suggestedByToggles := NewSuggestedByToggle(
 		slices.Collect(maps.Keys(*movies)),
 		s.uiResources,
-		func(toggled []string, args *widget.CheckboxChangedEventArgs) {
+		func(toggled []models.PersonName, args *widget.CheckboxChangedEventArgs) {
 			s.inputCallback(&SidebarInputCallbackData{
 				InputType:      SidebarInputTypeSuggestedBy,
 				SuggestedUsers: &toggled,

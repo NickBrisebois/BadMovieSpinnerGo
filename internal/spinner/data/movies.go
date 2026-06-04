@@ -67,14 +67,9 @@ func (m *MovieDataHandler) GetMovieList(options *GetMovieListOptions) []models.M
 	return m.memMovieDataCache
 }
 
-func (m *MovieDataHandler) GetMoviesBySuggestedBy(options *GetMovieListOptions) map[string][]models.MovieMeta {
+func (m *MovieDataHandler) GetMoviesBySuggestedBy(options *GetMovieListOptions) map[models.PersonName][]models.MovieMeta {
 	movieList := m.GetMovieList(options)
-	sortedMovies, err := processing.SortMovieList(movieList, &processing.MovieSortOptions{Type: processing.SortSuggestedBy})
-	if err != nil {
-		m.logger.Error("failed to sort movie list", "error", err)
-		return nil
-	}
-	return sortedMovies
+	return processing.SortMovieListByPerson(movieList)
 }
 
 func (m *MovieDataHandler) GetMoviePoster(tmdbID int) *ebiten.Image {

@@ -22,7 +22,7 @@ const (
 
 type UIEventCallbackData struct {
 	EventType      UIEventType
-	SuggestedUsers *[]string
+	SuggestedUsers *[]models.PersonName
 }
 
 type UIEventCallback func(data *UIEventCallbackData)
@@ -101,7 +101,7 @@ func (u *UIHandler) SetDimensions(screenWidth, screenHeight int) {
 	u.screenHeight = screenHeight
 }
 
-func (u *UIHandler) SetMovies(movies *map[string][]models.MovieMeta) {
+func (u *UIHandler) SetMovies(movies *map[models.PersonName][]models.MovieMeta) {
 	u.sidebar.SetMovies(movies)
 }
 

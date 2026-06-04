@@ -2,20 +2,21 @@ package sidebar
 
 import (
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
+	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-type ToggleCallback func(toggled []string, args *widget.CheckboxChangedEventArgs)
+type ToggleCallback func(toggled []models.PersonName, args *widget.CheckboxChangedEventArgs)
 
 type SuggestedByToggleList struct {
-	suggestedByList []string
+	suggestedByList []models.PersonName
 	uiResources     *res.UIResources
 	container       *widget.Container
 	toggles         []*widget.Checkbox
 }
 
-func NewSuggestedByToggle(suggestedByList []string, uiRes *res.UIResources, toggleCallback ToggleCallback) *SuggestedByToggleList {
+func NewSuggestedByToggle(suggestedByList []models.PersonName, uiRes *res.UIResources, toggleCallback ToggleCallback) *SuggestedByToggleList {
 	suggestedByListContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 			VerticalPosition: widget.GridLayoutPositionStart,
@@ -51,17 +52,17 @@ func NewSuggestedByToggle(suggestedByList []string, uiRes *res.UIResources, togg
 	return toggleListWidget
 }
 
-func (s *SuggestedByToggleList) getToggled() []string {
-	var toggled []string
+func (s *SuggestedByToggleList) getToggled() []models.PersonName {
+	var toggled []models.PersonName
 	for _, toggle := range s.toggles {
 		if toggle.State() == widget.WidgetChecked {
-			toggled = append(toggled, toggle.Text().Label)
+			toggled = append(toggled, models.PersonName(toggle.Text().Label))
 		}
 	}
 	return toggled
 }
 
-func (s *SuggestedByToggleList) getCheckboxWidget(label string, uiRes *res.UIResources, toggleCallback ToggleCallback) *widget.Checkbox {
+func (s *SuggestedByToggleList) getCheckboxWidget(label models.PersonName, uiRes *res.UIResources, toggleCallback ToggleCallback) *widget.Checkbox {
 	return widget.NewCheckbox(
 		widget.CheckboxOpts.Spacing(uiRes.Checkbox.Spacing),
 		widget.CheckboxOpts.Image(uiRes.Checkbox.Image),
@@ -69,7 +70,7 @@ func (s *SuggestedByToggleList) getCheckboxWidget(label string, uiRes *res.UIRes
 			toggleCallback(s.getToggled(), args)
 		}),
 		widget.CheckboxOpts.Text(
-			label,
+			string(label),
 			uiRes.LabelResources.Face,
 			uiRes.LabelResources.Text,
 		),

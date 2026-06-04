@@ -1,5 +1,7 @@
 package dto
 
+import "NickBrisebois/BadMovieSpinnerGo/pkg/models"
+
 const (
 	ColSuggestedByIndex = iota
 	ColMovieTitleIndex
@@ -10,14 +12,14 @@ const (
 )
 
 type GSheetsMoviesEntry struct {
-	SuggestedBy string
+	SuggestedBy models.PersonName
 	MovieTitle  string
 	TMDBLink    string
 	Watched     bool
 }
 
 func (g *GSheetsMoviesEntry) FromRowData(rowData []any) {
-	g.SuggestedBy = rowData[ColSuggestedByIndex].(string)
+	g.SuggestedBy = rowData[ColSuggestedByIndex].(models.PersonName)
 	g.MovieTitle = rowData[ColMovieTitleIndex].(string)
 	g.TMDBLink = rowData[ColTMDBLinkIndex].(string)
 	g.Watched = strToBool(rowData[ColWatched].(string))

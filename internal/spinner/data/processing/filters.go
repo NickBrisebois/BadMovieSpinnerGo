@@ -13,7 +13,8 @@ const (
 )
 
 type MovieFilters struct {
-	Watched WatchedStatus
+	Watched     WatchedStatus
+	SuggestedBy *[]models.PersonName
 }
 
 func FilterWatched(movieList []models.MovieMeta) []models.MovieMeta {
