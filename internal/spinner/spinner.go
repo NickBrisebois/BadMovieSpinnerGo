@@ -59,35 +59,39 @@ func NewSpinner(
 func (s *SpinnerHandler) uiEventCallback(data *ui.UIEventCallbackData) {
 	switch data.EventType {
 	case ui.UIIEventTypeSuggestedByChanged:
-		s.logger.Info("suggested by changed", "suggestedBy", data.SuggestedUsers)
+		s.logger.Info("suggested by changed, reinventing the wheel", "suggestedBy", data.SuggestedUsers)
+		s.rebuildWheel(data.SuggestedUsers)
 	default:
 	}
 }
 
-func (s *SpinnerHandler) initDrawHandler() {
+func (s *SpinnerHandler) rebuildWheel(suggestedBy *[]models.PersonName) {
 	movies := s.movieData.GetMovieList(
 		&data.GetMovieListOptions{
 			Filters: &processing.MovieFilters{
-				Watched: processing.WatchedStatusUnwatched,
+				Watched:     processing.WatchedStatusUnwatched,
+				SuggestedBy: suggestedBy,
 			},
 		},
 	)
+	if len(movies) == 0 {
+		s.logger.Warn("no movies match filters and can't build a wheel with no slices")
+		return
+	}
+
 	sliceAngle := render.GetSliceAngle(len(movies))
-
-	// Initialise the wheel with 0'd out animation properties
-	wheelDrawProperties := &data.WheelDrawProperties{
-		SliceAngle:          sliceAngle,
-		Rotation:            0,
-		AngularVelocity:     0.05,
-		AngularAcceleration: 0.002,
-		MaxVelocity:         0.1,
-	}
-
 	s.wheel = &data.Wheel{
-		IsSpinning:     false,
-		DrawProperties: wheelDrawProperties,
-		Slices:         s.genSlices(sliceAngle, movies),
+		IsSpinning: false,
+		DrawProperties: &data.WheelDrawProperties{
+			SliceAngle:          sliceAngle,
+			Rotation:            0,
+			AngularVelocity:     0.05,
+			AngularAcceleration: 0.002,
+			MaxVelocity:         0.1,
+		},
+		Slices: s.genSlices(sliceAngle, movies),
 	}
+
 	s.drawHandler = render.NewDrawHandler(s.wheel.Slices, sliceAngle)
 }
 
@@ -147,7 +151,7 @@ func (s *SpinnerHandler) Draw(screen *ebiten.Image) {
 	if !s.initialised && !spinnerRect.Empty() {
 		// The spinner has to be initialised after the first UI draw since
 		// the spinner box widget's dimensions are only calculated during that
-		s.initDrawHandler()
+		s.rebuildWheel(nil)
 		s.initialised = true
 		return
 	}
