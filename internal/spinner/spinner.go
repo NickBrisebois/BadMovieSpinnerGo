@@ -64,6 +64,9 @@ func (s *SpinnerHandler) uiEventCallback(data *events.EventCallbackData) {
 		s.rebuildWheel(data.SuggestedUsers)
 	case events.EventTypeSpinButtonClicked:
 		s.logger.Info("spin button clicked")
+		if s.initialised && s.wheel != nil && !s.wheel.IsSpinning {
+			s.wheel.IsSpinning = true
+		}
 	default:
 	}
 }
