@@ -5,6 +5,8 @@ import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/external"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/processing"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render/drawprop"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/state"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/events"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
@@ -23,7 +25,7 @@ type SpinnerHandler struct {
 	drawHandler *render.DrawHandler
 	uiHandler   *ui.UIHandler
 	movieData   *data.MovieDataHandler
-	wheel       *data.Wheel
+	wheel       *state.Wheel
 	logger      *slog.Logger
 }
 
@@ -86,11 +88,13 @@ func (s *SpinnerHandler) rebuildWheel(suggestedBy *[]models.PersonName) {
 	}
 
 	sliceAngle := render.GetSliceAngle(len(movies))
-	s.wheel = &data.Wheel{
+	s.wheel = &state.Wheel{
 		IsSpinning: false,
-		DrawProperties: &data.WheelDrawProperties{
-			SliceAngle:          sliceAngle,
-			Rotation:            0,
+		DrawProperties: &drawprop.WheelDrawProperties{
+			SliceAngle: sliceAngle,
+			Rotation:   0,
+		},
+		MotionProperties: &state.WheelMotionProperties{
 			AngularVelocity:     0.05,
 			AngularAcceleration: 0.002,
 			MaxVelocity:         0.1,
@@ -101,8 +105,8 @@ func (s *SpinnerHandler) rebuildWheel(suggestedBy *[]models.PersonName) {
 	s.drawHandler = render.NewDrawHandler(s.wheel.Slices, sliceAngle)
 }
 
-func (s *SpinnerHandler) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]data.Slice {
-	slices := make([]data.Slice, 0, len(movies))
+func (s *SpinnerHandler) genSlices(sliceAngle float32, movies []models.MovieMeta) *[]state.Slice {
+	slices := make([]state.Slice, 0, len(movies))
 
 	for i, movie := range movies {
 		moviePoster := s.movieData.GetMoviePoster(movie.TMDBId)
@@ -110,7 +114,7 @@ func (s *SpinnerHandler) genSlices(sliceAngle float32, movies []models.MovieMeta
 			s.logger.Error("failed to get movie poster, not adding to spinner", "TMDBId", movie.TMDBId)
 			continue
 		}
-		slices = append(slices, *data.NewSlice(
+		slices = append(slices, *state.NewSlice(
 			i,
 			i,
 			render.GetSliceStartAngle(i, sliceAngle),
@@ -125,11 +129,11 @@ func (s *SpinnerHandler) genSlices(sliceAngle float32, movies []models.MovieMeta
 
 func (s *SpinnerHandler) updateWheelState() {
 	render.UpdateAngularVelocityFromAcceleration(
-		&s.wheel.DrawProperties.AngularVelocity,
-		s.wheel.DrawProperties.AngularAcceleration,
-		s.wheel.DrawProperties.MaxVelocity,
+		&s.wheel.MotionProperties.AngularVelocity,
+		s.wheel.MotionProperties.AngularAcceleration,
+		s.wheel.MotionProperties.MaxVelocity,
 	)
-	render.UpdateRotationFromAngularVelocity(&s.wheel.DrawProperties.Rotation, s.wheel.DrawProperties.AngularVelocity)
+	render.UpdateRotationFromAngularVelocity(&s.wheel.DrawProperties.Rotation, s.wheel.MotionProperties.AngularVelocity)
 	rotation := s.wheel.DrawProperties.Rotation
 
 	// Update the wheel's rotation based on the updated slice angles

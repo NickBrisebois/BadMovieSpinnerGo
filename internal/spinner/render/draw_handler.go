@@ -1,16 +1,15 @@
 package render
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/state"
 	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
-
-	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data"
 )
 
 type DrawHandler struct {
-	slices     *[]data.Slice
+	slices     *[]state.Slice
 	sliceAngle float32
 }
 
@@ -19,7 +18,7 @@ type DrawHandler struct {
 const outerSliceArcSegments = 360
 
 func NewDrawHandler(
-	slices *[]data.Slice,
+	slices *[]state.Slice,
 	sliceAngle float32,
 ) *DrawHandler {
 	return &DrawHandler{
@@ -46,7 +45,7 @@ func getVertex(x, y float32, vertexColour color.Color) ebiten.Vertex {
 	}
 }
 
-func addOuterArc(vertices *[]ebiten.Vertex, slice *data.Slice, centreX, centreY, radius float32, numSegments int) {
+func addOuterArc(vertices *[]ebiten.Vertex, slice *state.Slice, centreX, centreY, radius float32, numSegments int) {
 	startAngle := slice.DrawProperties.StartAngle
 	endAngle := slice.DrawProperties.EndAngle
 	for j := 0; j <= numSegments; j++ {
@@ -58,7 +57,7 @@ func addOuterArc(vertices *[]ebiten.Vertex, slice *data.Slice, centreX, centreY,
 	}
 }
 
-func (s *DrawHandler) addVertexUV(vertex *ebiten.Vertex, slice *data.Slice, centreX, centreY, radius float32) {
+func (s *DrawHandler) addVertexUV(vertex *ebiten.Vertex, slice *state.Slice, centreX, centreY, radius float32) {
 	drawOpts := slice.DrawProperties
 
 	// get offset from the centre of the spinner
@@ -81,7 +80,7 @@ func (s *DrawHandler) addVertexUV(vertex *ebiten.Vertex, slice *data.Slice, cent
 	vertex.SrcY = posterY + float32(drawOpts.SliceImage.Bounds().Dy())/2
 }
 
-func (s *DrawHandler) getSliceVertices(slice *data.Slice, centreX, centreY, radius float32) []ebiten.Vertex {
+func (s *DrawHandler) getSliceVertices(slice *state.Slice, centreX, centreY, radius float32) []ebiten.Vertex {
 	vertices := make([]ebiten.Vertex, 0)
 
 	// centre vertex for slice
@@ -97,7 +96,7 @@ func (s *DrawHandler) getSliceVertices(slice *data.Slice, centreX, centreY, radi
 	return vertices
 }
 
-func (s *DrawHandler) drawSlice(screen *ebiten.Image, slice *data.Slice, centreX, centreY, radius float32) {
+func (s *DrawHandler) drawSlice(screen *ebiten.Image, slice *state.Slice, centreX, centreY, radius float32) {
 	vertices := s.getSliceVertices(slice, centreX, centreY, radius)
 
 	// indices represent the three corner points of the slice triangle
