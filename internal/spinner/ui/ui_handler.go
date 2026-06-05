@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/events"
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/sidebar"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/swidgets/spinnerbox"
@@ -14,34 +15,20 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type UIEventType int
-
-const (
-	UIIEventTypeSuggestedByChanged UIEventType = iota
-)
-
-type UIEventCallbackData struct {
-	EventType      UIEventType
-	SuggestedUsers *[]models.PersonName
-}
-
-type UIEventCallback func(data *UIEventCallbackData)
-
 type UIHandler struct {
-	ui             *ebitenui.UI
-	uiResources    *res.UIResources
-	screenWidth    int
-	screenHeight   int
-	rootContainer  *widget.Container
-	container      *widget.Container
-	spinnerBox     *spinnerbox.SpinnerBox
-	spinnerOverlay *spinnerbox.SpinnerOverlay
-	sidebar        *sidebar.Sidebar
-	logger         *slog.Logger
-	eventCallback  UIEventCallback
+	ui            *ebitenui.UI
+	uiResources   *res.UIResources
+	screenWidth   int
+	screenHeight  int
+	rootContainer *widget.Container
+	container     *widget.Container
+	spinnerBox    *spinnerbox.SpinnerBox
+	sidebar       *sidebar.Sidebar
+	logger        *slog.Logger
+	eventCallback events.EventCallback
 }
 
-func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger, eventCallback UIEventCallback) *UIHandler {
+func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger, eventCallback events.EventCallback) *UIHandler {
 	// create the main content container
 	container := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
@@ -66,25 +53,20 @@ func NewUIHandler(screenWidth, screenHeight int, logger *slog.Logger, eventCallb
 	}
 
 	handler := UIHandler{
-		ui:             &ui,
-		uiResources:    uiResources,
-		screenWidth:    screenWidth,
-		screenHeight:   screenHeight,
-		container:      container,
-		sidebar:        nil,
-		spinnerBox:     spinnerbox.NewSpinnerBox(uiResources),
-		spinnerOverlay: spinnerbox.NewSpinnerOverlay(uiResources),
-		logger:         logger,
-		eventCallback:  eventCallback,
+		ui:            &ui,
+		uiResources:   uiResources,
+		screenWidth:   screenWidth,
+		screenHeight:  screenHeight,
+		container:     container,
+		sidebar:       nil,
+		spinnerBox:    spinnerbox.NewSpinnerBox(uiResources, eventCallback),
+		logger:        logger,
+		eventCallback: eventCallback,
 	}
 	handler.sidebar = sidebar.NewSidebar(
 		int(swidgetutils.CalculatePercentOf(screenWidth, res.ThemeSidebarWidth)),
 		uiResources,
-		func(data *sidebar.SidebarInputCallbackData) {
-			handler.logger.Info("widget interaction callback", "inputType", data.InputType, "suggestedUsers", data.SuggestedUsers)
-			uiEventData := UIEventCallbackData{EventType: UIIEventTypeSuggestedByChanged, SuggestedUsers: data.SuggestedUsers}
-			handler.eventCallback(&uiEventData)
-		},
+		handler.eventCallback,
 	)
 	container.AddChild(handler.sidebar.GetContainer())
 	container.AddChild(handler.spinnerBox.GetContainer())

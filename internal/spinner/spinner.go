@@ -6,6 +6,7 @@ import (
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/data/processing"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/render"
 	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui"
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/events"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"log/slog"
 
@@ -56,11 +57,13 @@ func NewSpinner(
 	return spinnerHandler, nil
 }
 
-func (s *SpinnerHandler) uiEventCallback(data *ui.UIEventCallbackData) {
+func (s *SpinnerHandler) uiEventCallback(data *events.EventCallbackData) {
 	switch data.EventType {
-	case ui.UIIEventTypeSuggestedByChanged:
+	case events.EventTypeSuggestedByChanged:
 		s.logger.Info("suggested by changed, reinventing the wheel", "suggestedBy", data.SuggestedUsers)
 		s.rebuildWheel(data.SuggestedUsers)
+	case events.EventTypeSpinButtonClicked:
+		s.logger.Info("spin button clicked")
 	default:
 	}
 }

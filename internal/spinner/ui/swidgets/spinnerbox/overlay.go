@@ -1,6 +1,7 @@
 package spinnerbox
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/events"
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 
@@ -8,19 +9,21 @@ import (
 )
 
 type SpinnerOverlay struct {
-	container   *widget.Container
-	uiResources *res.UIResources
-	movies      *map[string][]models.MovieMeta
+	container     *widget.Container
+	uiResources   *res.UIResources
+	movies        *map[string][]models.MovieMeta
+	eventCallback events.EventCallback
 }
 
-func NewSpinnerOverlay(uiResources *res.UIResources) *SpinnerOverlay {
+func NewSpinnerOverlay(uiResources *res.UIResources, eventCallback events.EventCallback) *SpinnerOverlay {
 	overlayRootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
 	spinnerOverlay := &SpinnerOverlay{
-		uiResources: uiResources,
-		container:   overlayRootContainer,
+		uiResources:   uiResources,
+		container:     overlayRootContainer,
+		eventCallback: eventCallback,
 	}
 
 	spinnerOverlay.addSpinButton()
@@ -43,7 +46,9 @@ func (s *SpinnerOverlay) addSpinButton() {
 		widget.ButtonOpts.Image(s.uiResources.SpinButtonResources.Image),
 		widget.ButtonOpts.Text("Spin", s.uiResources.SpinButtonResources.Face, s.uiResources.SpinButtonResources.Text),
 		widget.ButtonOpts.TextPadding(s.uiResources.SpinButtonResources.Padding),
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {}),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			s.eventCallback(&events.EventCallbackData{EventType: events.EventTypeSpinButtonClicked})
+		}),
 	)
 
 	s.container.AddChild(button)

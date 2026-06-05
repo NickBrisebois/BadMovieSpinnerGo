@@ -1,6 +1,7 @@
 package sidebar
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/events"
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 	"maps"
@@ -10,27 +11,14 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-type SidebarInputType int
-
-const (
-	SidebarInputTypeSuggestedBy SidebarInputType = iota
-)
-
-type SidebarInputCallbackData struct {
-	InputType      SidebarInputType
-	SuggestedUsers *[]models.PersonName
-}
-
-type SidebarInputCallback func(data *SidebarInputCallbackData)
-
 type Sidebar struct {
 	uiResources   *res.UIResources
 	container     *widget.Container
 	movies        *map[models.PersonName][]models.MovieMeta
-	inputCallback SidebarInputCallback
+	eventCallback events.EventCallback
 }
 
-func NewSidebar(width int, uiResources *res.UIResources, inputCallback SidebarInputCallback) *Sidebar {
+func NewSidebar(width int, uiResources *res.UIResources, eventCallback events.EventCallback) *Sidebar {
 	sidebarContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(
 			image.NewNineSliceColor(res.ThemeSidebarBGColour),
@@ -52,7 +40,7 @@ func NewSidebar(width int, uiResources *res.UIResources, inputCallback SidebarIn
 	return &Sidebar{
 		container:     sidebarContainer,
 		uiResources:   uiResources,
-		inputCallback: inputCallback,
+		eventCallback: eventCallback,
 	}
 }
 
@@ -66,8 +54,8 @@ func (s *Sidebar) SetMovies(movies *map[models.PersonName][]models.MovieMeta) {
 		slices.Collect(maps.Keys(*movies)),
 		s.uiResources,
 		func(toggled []models.PersonName, args *widget.CheckboxChangedEventArgs) {
-			s.inputCallback(&SidebarInputCallbackData{
-				InputType:      SidebarInputTypeSuggestedBy,
+			s.eventCallback(&events.EventCallbackData{
+				EventType:      events.EventTypeSuggestedByChanged,
 				SuggestedUsers: &toggled,
 			})
 		},

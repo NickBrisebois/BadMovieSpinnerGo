@@ -1,6 +1,7 @@
 package spinnerbox
 
 import (
+	"NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/events"
 	res "NickBrisebois/BadMovieSpinnerGo/internal/spinner/ui/resources"
 	"NickBrisebois/BadMovieSpinnerGo/pkg/models"
 
@@ -8,12 +9,13 @@ import (
 )
 
 type SpinnerBox struct {
-	container   *widget.Container
-	uiResources *res.UIResources
-	movies      *map[string][]models.MovieMeta
+	container     *widget.Container
+	uiResources   *res.UIResources
+	movies        *map[string][]models.MovieMeta
+	eventCallback events.EventCallback
 }
 
-func NewSpinnerBox(uiResources *res.UIResources) *SpinnerBox {
+func NewSpinnerBox(uiResources *res.UIResources, eventCallback events.EventCallback) *SpinnerBox {
 	spinnerRootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
@@ -23,7 +25,7 @@ func NewSpinnerBox(uiResources *res.UIResources) *SpinnerBox {
 		),
 	)
 
-	overlay := NewSpinnerOverlay(uiResources)
+	overlay := NewSpinnerOverlay(uiResources, eventCallback)
 	spinnerRootContainer.AddChild(overlay.GetContainer())
 
 	return &SpinnerBox{
